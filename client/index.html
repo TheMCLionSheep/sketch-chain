@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="HandheldFriendly" content="true">
+    <title>Game</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+    <link rel="stylesheet" href="/client/css/main.css">
+  </head>
+  <body>
+    <article id="content">
+      <section id="sign-in" class="active">
+        <div class="container prompt-input">
+          <p>Enter your name:</p>
+          <input type="text" placeholder="Type here" id="name-input">
+        </div>
+        <button id="join-button" onclick="joinGame()">Join Game!</button>
+      </section>
+
+      <section id="pre-game">
+        <div class="container" id="sign-in__info">
+          <p>Waiting for game to start...</p>
+        </div>
+        <div class="container" id="player-list">
+          <h1>Players:</h1>
+        </div>
+        <button onclick="startGame()" id="start-btn">Start Game</button>
+      </section>
+
+      <section id="waiting-phase">
+        <div class="container">
+          <p id="waiting-text">Waiting for other teams to finish...</p>
+        </div>
+      </section>
+
+      <section id="prompt-phase">
+        <div class="container prompt-input">
+          <p>Enter any phrase:</p>
+          <textarea rows="4" placeholder="Write here" value="" id="prompt-area"></textarea>
+        </div>
+        <button id="prompt-button" onclick="submitPhrase()">Submit Phrase</button>
+      </section>
+
+      <section id="draw-phase">
+        <div class="container" id="timer-container">
+          <p id="timer">0:00</p>
+        </div>
+        <div class="container">
+          <p id="draw-prompt-text">Draw: </p>
+        </div>
+        <div class="container canvas-container">
+          <canvas id="drawing-canvas" width="500" height="500"></canvas>
+        </div>
+        <div class="slidecontainer">
+          <input type="range" min="1" max="360" value="1" class="slider" id="color-slider">
+        </div>
+        <div class="slidecontainer">
+          <input type="range" min="1" max="20" value="10" class="slider" id="size-slider">
+        </div>
+        <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button>
+        <button id="draw-button" onclick="submitDrawing()">Submit Drawing</button>
+      </section>
+
+      <section id="guess-phase">
+        <div class="container prompt-input">
+          <p>Enter your guess:</p>
+          <textarea id="guess-area" placeholder="Write here" rows="4" value="Hel"></textarea>
+        </div>
+        <div class="container canvas-container">
+          <canvas class="showcase-canvas" id="guess-canvas" width="500" height="500"></canvas>
+        </div>
+        <button id="guess-button" onclick="submitGuess()">Submit Guess</button>
+      </section>
+
+      <section id="review-phase"></section>
+    </article>
+    <script>
+      var signInSection = document.querySelector("#sign-in");
+      var nameInput = document.querySelector("#name-input");
+      var joinBtn = document.querySelector("#join-button");
+      var preGameSection = document.querySelector("#pre-game");
+      var playerList = document.querySelector("#player-list");
+      var canvas = document.querySelector("#drawing-canvas");
+      var ctx = canvas.getContext("2d");
+      var guessCanvas = document.querySelector("#guess-canvas");
+      var guessCtx = guessCanvas.getContext("2d");
+      var timer = document.querySelector("#timer");
+      var waitSection = document.querySelector("#waiting-phase");
+      var promptSection = document.querySelector("#prompt-phase");
+      var promptArea = document.querySelector("#prompt-area");
+      var promptBtn = document.querySelector("#prompt-button");
+      var drawSection = document.querySelector("#draw-phase");
+      var drawPrompt = document.querySelector("#draw-prompt-text");
+      var drawBtn = document.querySelector("#draw-button");
+      var guessSection = document.querySelector("#guess-phase");
+      var guessArea = document.querySelector("#guess-area");
+      var guessBtn = document.querySelector("#guess-button");
+      var reviewSection = document.querySelector("#review-phase");
+      var startBtn = document.querySelector("#start-btn");
+
+      var curButton = joinBtn;
+
+      const socket = io();
+
+      socket.on("joinGame", function() {
+        signInSection.classList.remove("active");
+        reviewSection.classList.remove("active");
+        preGameSection.classList.add("active");
+        curButton = startBtn;
+      });
+
+      // socket.on("preGameLobby", function(packet) {
+      //   for(var i = 0; i < packet.length; i++) {
+      //     console.log(packet[i].name);
+      //   }
+      // });
+
+      socket.on("playerLobby", function(packet) {
+        addToLobby(packet.add, packet.name);
+      });
+
+      socket.on("createLine",function(data){
+        drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color)
+      });
+
+      socket.on("showDrawing", function(drawing){
+        guessCtx.clearRect(0,0,500,500);
+        for(var i = 0; i < drawing.lineList.length; i++) {
+          drawLine(guessCtx, drawing.lineList[i].startX, drawing.lineList[i].startY, drawing.lineList[i].endX, drawing.lineList[i].endY, drawing.lineList[i].radius, drawing.lineList[i].color);
+        }
+      });
+
+      socket.on("changeText", function(text) {
+        promptArea.value = text;
+      });
+
+      socket.on("updateTime",function(data){
+        timer.innerHTML = data.mins + ":" + (data.secs < 10 ? "0" + data.secs : data.secs);
+      });
+
+      socket.on("gamePhase",function(phase){
+        switch(phase) {
+          case "prompt":
+            preGameSection.classList.remove("active");
+            promptSection.classList.add("active");
+            startBtn.classList.remove("active");
+            curButton = promptBtn;
+            break;
+          case "waiting":
+            waitSection.classList.add("active");
+            promptSection.classList.remove("active");
+            drawSection.classList.remove("active");
+            guessSection.classList.remove("active");
+            curButton = null;
+            break;
+          case "draw":
+            drawSection.classList.add("active");
+            waitSection.classList.remove("active");
+            curButton = drawBtn;
+            break;
+          case "guess":
+            waitSection.classList.remove("active");
+            guessSection.classList.add("active");
+            curButton = guessBtn;
+          case "review":
+            waitSection.classList.remove("active");
+            reviewSection.classList.add("active");
+          default:
+            break;
+        }
+      });
+
+      socket.on("showPrompt",function(prompt){
+        drawPrompt.innerHTML = "Draw: " + prompt.text;
+      });
+
+      socket.on("showResult", function(chainLinks){
+        createText(reviewSection,"Original Prompt",chainLinks[0].text);
+        if(chainLinks.length % 2 == 1) {
+          createText(reviewSection,"Final Guess",chainLinks[chainLinks.length - 1].text);
+        }
+        createButton("View Chains","viewChains(0,0);");
+      });
+
+      socket.on("reviewLink", function(packet){
+        if(packet.nextLink == 1) {
+          clearReview();
+          createArrowButtons(packet.nextChain, packet.nextLink);
+        }
+        if(packet.type == "text") {
+          createText(document.querySelector("#chain-showcase"),(packet.nextLink == 1 ? "Original Prompt" : "Guess"),packet.link.text);
+        }
+        else if(packet.type == "drawing") {
+          createDrawing(packet.link);
+        }
+        updateArrowButtons(packet.nextChain, packet.nextLink);
+      });
+
+      function joinGame() {
+        socket.emit("signIn",nameInput.value.replace(/\s/g,''));
+      }
+
+      function addToLobby(add, name) {
+        var p;
+        if(add) {
+          p = document.createElement("p");
+
+          p.setAttribute("id","lobby-name__" + name);
+          p.innerHTML = name;
+
+          playerList.appendChild(p);
+        }
+        else {
+          p = document.querySelector("#lobby-name__" + name);
+          if(p != null) {
+            playerList.removeChild(p);
+          }
+        }
+      }
+
+      var painting = false;
+      var color = "red";
+      var size = 10;
+
+      function startDrawing(e) {
+        painting = true;
+        eventInfo = {
+          state: true,
+          x: e.pageX - this.offsetLeft,
+          y: e.pageY - this.offsetTop,
+          color: color,
+          size: size
+        };
+        socket.emit("linePress", eventInfo);
+      }
+      function endDrawing() {
+        painting = false;
+        eventInfo = {
+          state: false
+        };
+        socket.emit("linePress", eventInfo);
+      }
+      function draw(e) {
+        if(!painting) {
+          return;
+        }
+        if((e.pageX - this.offsetLeft) < 1 || (e.pageX - this.offsetLeft) > 500 || (e.pageY - this.offsetTop) < 1 || (e.pageY - this.offsetTop) > 500)
+        {
+          endDrawing();
+          return;
+        }
+        eventInfo = {
+          x: e.pageX - this.offsetLeft,
+          y: e.pageY - this.offsetTop,
+          color: color,
+          size: size
+        };
+        socket.emit("linePress", eventInfo);
+      }
+
+      function drawLine(can, startX, startY, endX, endY, radius, color) {
+        can.lineWidth = radius;
+        can.lineCap = "round";
+        can.strokeStyle = color;
+
+        can.beginPath();
+        can.moveTo(startX, startY);
+        can.lineTo(endX, endY);
+        can.stroke();
+      }
+      function clearCanvas() {
+        ctx.clearRect(0,0,500,500);
+      }
+
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mouseup", endDrawing);
+      canvas.addEventListener("mousemove", draw);
+
+      var colorSlider = document.querySelector("#color-slider");
+      var sizeSlider = document.querySelector("#size-slider");
+      colorSlider.oninput = function() {
+        var red = (Math.abs(this.value - 180)*(64/15)-257);
+        red = red < 0 ? 0 : red;
+        red = red > 255 ? 255 : red;
+
+        var green = (((Math.abs(this.value - 120)*-1)+120)*(64/15));
+        green = green < 0 ? 0 : green;
+        green = green > 255 ? 255 : green;
+
+        var blue = (((Math.abs(this.value - 240)*-1)+120)*(64/15));
+        blue = blue < 0 ? 0 : blue;
+        blue = blue > 255 ? 255 : blue;
+
+        color = "RGB(" + red + "," + green + "," + blue + ")";
+      }
+      sizeSlider.oninput = function() {
+        size = this.value;
+      }
+
+      function writePrompt(e) {
+        socket.emit("textChange",this.value);
+      }
+
+      function submitPhrase() {
+        socket.emit("promptSubmit", promptArea.value);
+      }
+
+      function submitDrawing() {
+        socket.emit("drawingSubmit");
+      }
+
+      function submitGuess() {
+        socket.emit("promptSubmit", guessArea.value);
+      }
+
+      promptArea.addEventListener("input", writePrompt);
+
+      function createText(parent, header, text) {
+        var container = document.createElement("div");
+        var headerEl = document.createElement("h1");
+        var textEl = document.createElement("p");
+
+        container.setAttribute("class","container review-container");
+        headerEl.innerHTML = header;
+        textEl.innerHTML = text;
+
+        container.appendChild(headerEl);
+        container.appendChild(textEl);
+        parent.appendChild(container);
+      }
+
+      function createButton(text, onclick, id=null) {
+        var button = document.createElement("button");
+
+        button.innerHTML = text;
+        button.setAttribute("onclick",onclick);
+        if(id != null) {
+          button.setAttribute("id","next-button");
+        }
+
+        reviewSection.appendChild(button);
+      }
+
+      function createDrawing(drawing) {
+        var canvasContainer = document.createElement("div");
+        var newCanvas = document.createElement("canvas");
+        var chainSection = document.querySelector("#chain-showcase");
+
+        newCanvas.setAttribute("width",500);
+        newCanvas.setAttribute("height",500);
+
+        canvasContainer.setAttribute("class","canvas-container");
+        for(var i = 0; i < drawing.lineList.length; i++) {
+          drawLine(newCanvas.getContext("2d"), drawing.lineList[i].startX, drawing.lineList[i].startY, drawing.lineList[i].endX, drawing.lineList[i].endY, drawing.lineList[i].radius, drawing.lineList[i].color);
+        };
+
+        canvasContainer.appendChild(newCanvas);
+        chainSection.appendChild(canvasContainer);
+      }
+
+      function viewChains(chainID, linkID) {
+        linkNumber = {
+          chainID: chainID,
+          linkID: linkID
+        };
+        socket.emit("viewChains", linkNumber);
+      }
+
+      function clearReview() {
+        while(reviewSection.firstChild) {
+          reviewSection.removeChild(reviewSection.lastChild);
+        }
+      }
+
+      function createArrowButtons(chainID, linkID) {
+        var div = document.createElement("div");
+        div.setAttribute("id","chain-showcase");
+        reviewSection.appendChild(div);
+
+        createButton("Next", "viewChains("+chainID+","+linkID+")", "next-button");
+      }
+
+      function updateArrowButtons(chainID, linkID) {
+        var button = document.querySelector("#next-button");
+        button.setAttribute("onclick","viewChains("+chainID+","+linkID+")");
+      }
+
+      document.addEventListener("keyup", function(event){
+        if(event.keyCode === 13 && curButton != null) {
+          event.preventDefault();
+          curButton.click();
+        }
+      });
+
+      function startGame() {
+        socket.emit("startGame");
+        startBtn.setAttribute("class","active");
+      }
+    </script>
+  </body>
+</html>

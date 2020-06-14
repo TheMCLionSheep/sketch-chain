@@ -1,0 +1,244 @@
+#content {
+  margin: 0 auto;
+  width: fit-content;
+}
+
+body {
+  font-family: "H", "Trebuchet MS";
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+  background-color: #21D4FD;
+  background-image: linear-gradient(19deg, #21D4FD 0%, #B721FF 100%);
+  background-size: cover;
+  min-height: 100vh;
+}
+
+section {
+  padding: 50px 0;
+}
+
+button {
+  display: block;
+  margin: 20px auto;
+  padding: 20px 50px;
+  text-align: center;
+  transition: 0.5s;
+  color: white;
+  background-image: linear-gradient(to right, #FF4E50 0%, #F9D423 51%, #FF4E50 100%);
+  background-size: 200% auto;
+  box-shadow: 0 5px 20px -10px black;
+  border-radius: 40px;
+  border:none;
+  outline: none;
+  font-size: 30px;
+  text-transform: uppercase;
+  font-family: "Helvetica";
+  font-weight: bold;
+}
+button:hover {
+  background-position: right center;
+}
+
+#sign-in__info p{
+  padding: 20px;
+}
+#player-list {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+}
+#player-list h1{
+  width: 100%;
+  margin:0;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  font-size: 40px;
+}
+#player-list p{
+  margin: 0 15px 10px;
+  padding: 5px 10px;
+  font-size: 30px;
+  width: auto;
+  background: #232526;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 3px 10px -5px black;
+}
+
+.container {
+  width: 530px;
+  height: auto;
+  background-color: white;
+  box-shadow: 0 5px 30px -20px black;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  font-size: 30px;
+  text-align: center;
+  font-family: "Helvetica";
+  font-weight: bold;
+}
+.review-container h1 {
+  margin: 0;
+  padding: 20px 0 0;
+  font-size: 40px;
+}
+.review-container p {
+  margin: 0;
+  padding: 10px 0;
+}
+
+#timer-container {
+  padding: 10px 0;
+  background: white;
+  color: black;
+}
+#timer-container p{
+  font-size: 40px;
+  margin: 0;
+}
+
+.canvas-container {
+  height: 530px;
+  margin-bottom: 20px;
+}
+
+canvas {
+  position: relative;
+  top: 10px;
+  width: 500px;
+  height: 500px;
+  background: white;
+  border: solid RGB(240,240,240) 5px;
+  border-radius: 25px;
+}
+
+.slidecontainer {
+  width: 520px;
+  height: 25px;
+  padding: 5px;
+  border-radius: 35px;
+  box-shadow: 0 5px 15px -10px black;
+  text-align: center;
+  background-color: white;
+  margin-bottom: 5px;
+}
+.slider {
+  position: relative;
+  -webkit-appearance:none;
+  width: 100%;
+  height: 25px;
+  margin: auto;
+  background: white;
+  outline: none;
+  border-radius: 25px;
+}
+
+#color-slider {
+  background: white url("/client/images/hue-gradient.jpg");
+  background-size: cover;
+}
+
+#size-slider {
+  background: black;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance:none;
+  width: 25px;
+  height: 25px;
+  background: RGB(255,255,255,0);
+  border: solid white 3px;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.prompt-input {
+  padding: 10px;
+  width: 510px;
+  height: auto;
+  font-size: 30px;
+  text-align: center;
+  font-family: "Helvetica";
+  font-weight: bold;
+}
+.prompt-input p {
+  margin: 0;
+  width:auto;
+}
+.prompt-input textarea {
+  border: none;
+  font-size: 30px;
+  text-align: center;
+  font-family: "Helvetica";
+  font-weight: bold;
+}
+.prompt-input input {
+  background: RGB(230,230,230);
+  border: none;
+  font-size: 30px;
+  text-align: center;
+  font-family: "Helvetica";
+  font-weight: bold;
+}
+
+#waiting-text {
+  font-size: 30px;
+  padding: 20px;
+  margin: 0;
+}
+
+#draw-prompt-text {
+  font-size: 30px;
+  padding: 15px;
+  margin: 0;
+  word-wrap: break-word;
+  max-width: 500px;
+  height: auto;
+}
+
+#sign-in {
+  display: none;
+}
+#sign-in.active {
+  display: block;
+}
+#pre-game {
+  display: none;
+}
+#pre-game.active {
+  display: block;
+}
+#waiting-phase {
+  display: none;
+}
+#waiting-phase.active {
+  display: block;
+}
+#prompt-phase {
+  display: none;
+}
+#prompt-phase.active {
+  display: block;
+}
+#draw-phase {
+  display: none;
+}
+#draw-phase.active {
+  display: block;
+}
+#guess-phase {
+  display: none;
+}
+#guess-phase.active {
+  display: block;
+}
+#review-phase {
+  display: none;
+}
+#review-phase.active {
+  display: block;
+}
