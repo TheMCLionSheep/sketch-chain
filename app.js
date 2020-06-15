@@ -223,13 +223,13 @@ Player.onConnect = function(socket, name) {
   }
   Player.updateLobby(true, player);
 
-  if(curGame.gamePhase == "draw") {
-    //Load canvas
-    for(var i in curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber]) {
-      var drawLine = curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber][i];
-      socket.emit("createLine",drawLine);
-    }
-  }
+  // if(curGame.gamePhase == "draw") {
+  //   //Load canvas
+  //   for(var i in curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber]) {
+  //     var drawLine = curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber][i];
+  //     socket.emit("createLine",drawLine);
+  //   }
+  // }
 
   socket.on("becomeHost", function(become) {
     if(become) {
