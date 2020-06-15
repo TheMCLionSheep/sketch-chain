@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/client/css/main.css">
   </head>
   <body>
+    <div id="scrim" onclick="hidePopup()"></div>
     <article id="content">
       <div id="confirm-popup">
         <h1>Confirm Submit</h1>
@@ -71,7 +72,7 @@
         <div class="slidecontainer">
           <input type="range" min="1" max="20" value="10" class="slider" id="size-slider">
         </div>
-        <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button>
+        <!-- <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button> -->
         <button id="draw-button" onclick="showPopup('drawing');">Submit Drawing</button>
       </section>
 
@@ -116,6 +117,7 @@
       var reviewSection = document.querySelector("#review-phase");
       var popup = document.querySelector("#confirm-popup");
       var popupBtn = document.querySelector("#confirm-button");
+      var scrim = document.querySelector("#scrim");
       var startBtn = document.querySelector("#start-btn");
 
       var curButton = joinBtn;
@@ -168,6 +170,12 @@
             break;
         }
       });
+
+      socket.on("restartGame", function() {
+        promptArea.value = "";
+        guessArea.value = "";
+        clearCanvas();
+      })
 
       socket.on("createLine",function(data){
         drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color)
@@ -411,8 +419,13 @@
       }
 
       function showPopup(type) {
+        scrim.classList.add("active");
         popup.classList.add("active");
         popup.setAttribute("onclick","confirmSubmit('" + type + "');");
+      }
+      function hidePopup() {
+        scrim.classList.remove("active");
+        popup.classList.remove("active");
       }
 
       function confirmSubmit(type) {
@@ -429,7 +442,7 @@
           default:
             break;
         }
-        popup.classList.remove("active");
+        hidePopup();
       }
 
       function submitPhrase() {

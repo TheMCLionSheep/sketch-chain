@@ -203,6 +203,18 @@ canvas {
   display: block;
 }
 
+#scrim {
+  display: none;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background: RGB(0,0,0, 0.7);
+  z-index: 5;
+}
+#scrim.active {
+  display: block;
+}
+
 #confirm-popup {
   z-index: 10;
   display: none;

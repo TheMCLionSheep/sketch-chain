@@ -3,7 +3,7 @@
 //heroku login
 //git add .
 //git commit -am "Make it better"
-//git commit push heroku master
+//git push heroku master
 //heroku logs
 
 var express = require("express");
@@ -264,6 +264,7 @@ Player.onConnect = function(socket, name) {
       if(player.painting) {
         var chainID = curGame.teams[player.teamID].curChain;
         var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber]);
+        //var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color)
         player.updatePosition(event.x,event.y);
 
         //Adds line for all sockets in team
@@ -373,7 +374,7 @@ Player.onDisconnect = function(socket) {
   }
 }
 
-var Line = function(startX, startY, endX, endY, radius, color, drawing) {
+var Line = function(startX, startY, endX, endY, radius, color, drawing = null) {
   var line = {
     startX: startX,
     startY: startY,
@@ -382,7 +383,9 @@ var Line = function(startX, startY, endX, endY, radius, color, drawing) {
     radius: radius,
     color: color
   }
-  drawing.lineList.push(line);
+  if(drawing != null) {
+    drawing.lineList.push(line);
+  }
   return line;
 }
 
