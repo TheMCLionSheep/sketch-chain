@@ -310,11 +310,11 @@ Player.onConnect = function(socket, name) {
         var tempSoc = SOCKET_LIST[i];
         tempSoc.emit("gamePhase","waiting");
       }
-      var chainID = curGame.teams[player.teamID].curChain;
-      curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
-
-      curGame.teams[player.teamID].finished = true;
-      curGame.checkFinished();
+      // var chainID = curGame.teams[player.teamID].curChain;
+      // curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
+      //
+      // curGame.teams[player.teamID].finished = true;
+      // curGame.checkFinished();
     }
   });
 
@@ -361,8 +361,8 @@ Player.updateLobby = function(add, player) {
   }
 }
 Player.onDisconnect = function(socket) {
-  console.log(socket + " left the game.");
   if(Player.list[socket.id] != null) {
+    console.log(Player.list[socket.id].name + " left the game.");
     if(curGame.gamePhase == "notStarted") {
       Player.updateLobby(false, Player.list[socket.id]);
     }
