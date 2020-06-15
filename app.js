@@ -286,6 +286,7 @@ Player.onConnect = function(socket, name) {
   });
 
   socket.on("promptSubmit", function(text) {
+    console.log("Prompt Request from " + player.name);
     if(curGame.gamePhase == "prompt" || curGame.gamePhase == "guess") {
       var chainID = curGame.teams[player.teamID].curChain;
       curGame.chains[chainID].chainLinks[curGame.roundNumber].updateText(text);
@@ -302,6 +303,7 @@ Player.onConnect = function(socket, name) {
   });
 
   socket.on("drawingSubmit", function(drawingImg) {
+    console.log("Drawing Request from " + player.name);
     if(curGame.gamePhase == "draw") {
       //Set waiting for team
       for(var i in curGame.teams[player.teamID].players) {
@@ -377,7 +379,7 @@ Player.onDisconnect = function(socket) {
   }
 }
 
-var Line = function(startX, startY, endX, endY, radius, color, drawing = null) {
+var Line = function(startX, startY, endX, endY, radius, color) {
   var line = {
     startX: startX,
     startY: startY,
@@ -385,9 +387,6 @@ var Line = function(startX, startY, endX, endY, radius, color, drawing = null) {
     endY: endY,
     radius: radius,
     color: color
-  }
-  if(drawing != null) {
-    drawing.lineList.push(line);
   }
   return line;
 }
