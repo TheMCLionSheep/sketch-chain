@@ -459,7 +459,11 @@
       function submitGuess() {
         var whiteSpace = guessArea.value.replace(/\s/g,'');
         if(whiteSpace != "") {
+          console.log("submitted")
           socket.emit("promptSubmit", guessArea.value);
+        }
+        else {
+          console.log("error")
         }
       }
 
