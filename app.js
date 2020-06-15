@@ -310,11 +310,11 @@ Player.onConnect = function(socket, name) {
         var tempSoc = SOCKET_LIST[i];
         tempSoc.emit("gamePhase","waiting");
       }
-      // var chainID = curGame.teams[player.teamID].curChain;
-      // curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
-      //
-      // curGame.teams[player.teamID].finished = true;
-      // curGame.checkFinished();
+      var chainID = curGame.teams[player.teamID].curChain;
+      curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
+
+      curGame.teams[player.teamID].finished = true;
+      curGame.checkFinished();
     }
   });
 
