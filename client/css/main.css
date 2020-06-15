@@ -111,6 +111,15 @@ button:hover {
   height: 530px;
   margin-bottom: 20px;
 }
+.drawing-img {
+  position: relative;
+  top: 10px;
+  width: 500px;
+  height: 500px;
+  background: white;
+  border: solid RGB(240,240,240) 5px;
+  border-radius: 25px;
+}
 
 canvas {
   position: relative;
@@ -362,6 +371,13 @@ canvas {
   .canvas-container {
     height: 88.33vw;
     margin-bottom: 3.33vw;
+  }
+  .drawing-img {
+    top: 1.67vw;
+    width: 83.33vw;
+    height: 83.33vw;
+    border: solid RGB(240,240,240) 0.83vw;
+    border-radius: 4.17vw;
   }
 
   canvas {

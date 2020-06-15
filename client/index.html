@@ -23,7 +23,7 @@
       <section id="sign-in" class="active">
         <div class="container prompt-input">
           <p>Enter your name:</p>
-          <input type="text" placeholder="Type here" id="name-input">
+          <input maxlength="20" type="text" placeholder="Type here" id="name-input">
           <p class="error-text" id="error-name"></p>
         </div>
         <button id="join-button" onclick="joinGame()">Join Game!</button>
@@ -83,7 +83,8 @@
           <p class="error-text" id="error-guess"></p>
         </div>
         <div class="container canvas-container">
-          <canvas class="showcase-canvas" id="guess-canvas" width="500" height="500"></canvas>
+          <!-- <canvas class="showcase-canvas" id="guess-canvas" width="500" height="500"></canvas> -->
+          <img class="drawing-img" id="guess-img" src="" alt="Image loading...">
         </div>
         <button id="guess-button" onclick="showPopup('guess');">Submit Guess</button>
       </section>
@@ -101,8 +102,7 @@
       var playerList = document.querySelector("#player-list");
       var canvas = document.querySelector("#drawing-canvas");
       var ctx = canvas.getContext("2d");
-      var guessCanvas = document.querySelector("#guess-canvas");
-      var guessCtx = guessCanvas.getContext("2d");
+      var guessImg = document.querySelector("#guess-img");
       var timer = document.querySelector("#timer");
       var waitSection = document.querySelector("#waiting-phase");
       var promptSection = document.querySelector("#prompt-phase");
@@ -182,10 +182,7 @@
       });
 
       socket.on("showDrawing", function(drawing){
-        guessCtx.clearRect(0,0,500,500);
-        for(var i = 0; i < drawing.lineList.length; i++) {
-          drawLine(guessCtx, drawing.lineList[i].startX, drawing.lineList[i].startY, drawing.lineList[i].endX, drawing.lineList[i].endY, drawing.lineList[i].radius, drawing.lineList[i].color);
-        }
+        guessImg.src = drawing
       });
 
       socket.on("changeText", function(text) {
@@ -453,7 +450,7 @@
       }
 
       function submitDrawing() {
-        socket.emit("drawingSubmit");
+        socket.emit("drawingSubmit", canvas.toDataURL());
       }
 
       function submitGuess() {
@@ -497,18 +494,14 @@
 
       function createDrawing(drawing) {
         var canvasContainer = document.createElement("div");
-        var newCanvas = document.createElement("canvas");
+        var newImg = document.createElement("img");
         var chainSection = document.querySelector("#chain-showcase");
 
-        newCanvas.setAttribute("width",500);
-        newCanvas.setAttribute("height",500);
-
         canvasContainer.setAttribute("class","container canvas-container");
-        for(var i = 0; i < drawing.lineList.length; i++) {
-          drawLine(newCanvas.getContext("2d"), drawing.lineList[i].startX, drawing.lineList[i].startY, drawing.lineList[i].endX, drawing.lineList[i].endY, drawing.lineList[i].radius, drawing.lineList[i].color);
-        };
+        newImg.src = drawing;
+        newImg.setAttribute("class","drawing-img");
 
-        canvasContainer.appendChild(newCanvas);
+        canvasContainer.appendChild(newImg);
         chainSection.appendChild(canvasContainer);
       }
 

@@ -60,7 +60,7 @@ var Game = function(playerList, timeLeft) {
     game.gamePhase = phaseName;
     if(phaseName == "draw") {
       for(var i = 0; i < game.chains.length; i++) {
-        game.chains[i].addToChain(new Drawing());
+        game.chains[i].addToChain(null);
       }
       game.addTime(3*60);
     }
@@ -121,6 +121,7 @@ var Game = function(playerList, timeLeft) {
     for(var i in game.players) {
       var tempSocket = SOCKET_LIST[i]
       tempSocket.emit("joinGame",true);
+      tempSocket.emit("restartGame");
     }
     curGame = new Game([], 0);
   }
@@ -262,9 +263,9 @@ Player.onConnect = function(socket, name) {
       }
 
       if(player.painting) {
-        var chainID = curGame.teams[player.teamID].curChain;
-        var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber]);
-        //var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color)
+        // var chainID = curGame.teams[player.teamID].curChain;
+        // var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber]);
+        var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color);
         player.updatePosition(event.x,event.y);
 
         //Adds line for all sockets in team
@@ -300,13 +301,15 @@ Player.onConnect = function(socket, name) {
     }
   });
 
-  socket.on("drawingSubmit", function() {
+  socket.on("drawingSubmit", function(drawingImg) {
     if(curGame.gamePhase == "draw") {
       //Set waiting for team
       for(var i in curGame.teams[player.teamID].players) {
         var tempSoc = SOCKET_LIST[i];
         tempSoc.emit("gamePhase","waiting");
       }
+      var chainID = curGame.teams[player.teamID].curChain;
+      curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
 
       curGame.teams[player.teamID].finished = true;
       curGame.checkFinished();
