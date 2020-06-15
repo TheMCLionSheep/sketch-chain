@@ -1,8 +1,10 @@
 //node app.js
 
+//heroku login
 //git add .
 //git commit -am "Make it better"
 //git commit push heroku master
+//heroku logs
 
 var express = require("express");
 var app = express();

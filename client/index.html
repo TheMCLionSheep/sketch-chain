@@ -211,6 +211,7 @@
           case "guess":
             waitSection.classList.remove("active");
             guessSection.classList.add("active");
+            drawSection.classList.remove("active");
             curButton = guessBtn;
           case "review":
             waitSection.classList.remove("active");
@@ -277,11 +278,14 @@
       var size = 10;
 
       function startDrawing(e) {
+        var canvasPercent = 500/this.offsetWidth;
+        canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
+
         painting = true;
         eventInfo = {
           state: true,
-          x: e.pageX - this.offsetLeft,
-          y: e.pageY - this.offsetTop,
+          x: (e.pageX - this.offsetLeft)*canvasPercent,
+          y: (e.pageY - this.offsetTop)*canvasPercent,
           color: color,
           size: size
         };
@@ -295,17 +299,65 @@
         socket.emit("linePress", eventInfo);
       }
       function draw(e) {
+        var canvasPercent = 500/this.offsetWidth;
+        canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
+
         if(!painting) {
           return;
         }
-        if((e.pageX - this.offsetLeft) < 1 || (e.pageX - this.offsetLeft) > 500 || (e.pageY - this.offsetTop) < 1 || (e.pageY - this.offsetTop) > 500)
+        if((e.pageX - this.offsetLeft)*canvasPercent < 1 || (e.pageX - this.offsetLeft)*canvasPercent > 500 || (e.pageY - this.offsetTop)*canvasPercent < 1 || (e.pageY - this.offsetTop)*canvasPercent > 500)
         {
           endDrawing();
           return;
         }
         eventInfo = {
-          x: e.pageX - this.offsetLeft,
-          y: e.pageY - this.offsetTop,
+          x: (e.pageX - this.offsetLeft)*canvasPercent,
+          y: (e.pageY - this.offsetTop)*canvasPercent,
+          color: color,
+          size: size
+        };
+        socket.emit("linePress", eventInfo);
+      }
+      function startDrawingTouch(e) {
+        e.preventDefault();
+        console.log(e.changedTouches[0]);
+        var canvasPercent = 500/this.offsetWidth;
+        canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
+
+        painting = true;
+        eventInfo = {
+          state: true,
+          x: (e.changedTouches[0].pageX - this.offsetLeft)*canvasPercent,
+          y: (e.changedTouches[0].pageY - this.offsetTop)*canvasPercent,
+          color: color,
+          size: size
+        };
+        socket.emit("linePress", eventInfo);
+      }
+      function endDrawingTouch() {
+        painting = false;
+        eventInfo = {
+          state: false
+        };
+        socket.emit("linePress", eventInfo);
+      }
+      function drawTouch(e) {
+        e.preventDefault();
+        console.log(e.changedTouches[0]);
+        var canvasPercent = 500/this.offsetWidth;
+        canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
+
+        if(!painting) {
+          return;
+        }
+        if((e.changedTouches[0].pageX - this.offsetLeft)*canvasPercent < 1 || (e.changedTouches[0].pageX - this.offsetLeft)*canvasPercent > 500 || (e.changedTouches[0].pageY - this.offsetTop)*canvasPercent < 1 || (e.changedTouches[0].pageY - this.offsetTop)*canvasPercent > 500)
+        {
+          endDrawing();
+          return;
+        }
+        eventInfo = {
+          x: (e.changedTouches[0].pageX - this.offsetLeft)*canvasPercent,
+          y: (e.changedTouches[0].pageY - this.offsetTop)*canvasPercent,
           color: color,
           size: size
         };
@@ -329,6 +381,9 @@
       canvas.addEventListener("mousedown", startDrawing);
       canvas.addEventListener("mouseup", endDrawing);
       canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("touchstart", startDrawingTouch);
+      canvas.addEventListener("touchend", endDrawingTouch);
+      canvas.addEventListener("touchmove", drawTouch);
 
       var colorSlider = document.querySelector("#color-slider");
       var sizeSlider = document.querySelector("#size-slider");

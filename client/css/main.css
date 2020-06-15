@@ -23,7 +23,7 @@ button {
   margin: 20px auto;
   padding: 20px 50px;
   text-align: center;
-  transition: 0.5s;
+  transition: 0.5s background;
   color: white;
   background-image: linear-gradient(to right, #FF4E50 0%, #F9D423 51%, #FF4E50 100%);
   background-size: 200% auto;
@@ -177,6 +177,7 @@ canvas {
   padding-bottom: 10px
 }
 .prompt-input textarea {
+  width: 420px;
   border: none;
   font-size: 30px;
   text-align: center;
@@ -184,6 +185,7 @@ canvas {
   font-weight: bold;
 }
 .prompt-input input {
+  width: 420px;
   background: RGB(230,230,230);
   border: none;
   font-size: 30px;
@@ -292,4 +294,137 @@ canvas {
 }
 #review-phase.active {
   display: block;
+}
+
+@media only screen and (max-width: 600px) {
+  section {
+    padding: 8.33vw 0;
+  }
+
+  button {
+    margin: 3.33vw auto;
+    padding: 3.33vw 8.33vw;
+    box-shadow: 0 0.83vw 3.33vw -1.66vw black;
+    border-radius: 6.66vw;
+    font-size: 5vw;
+  }
+
+  #sign-in__info p{
+    padding: 3.33vw;
+  }
+  #player-list h1{
+    padding-top: 3.33vw;
+    padding-bottom: 1.66vw;
+    font-size: 6.66vw;
+  }
+  #player-list p{
+    margin: 0 2.5vw 1.67vw;
+    padding: 0.83vw 1.67vw;
+    font-size: 5vw;
+    border-radius: 1.67vw;
+    box-shadow: 0 0.5vw 1.67vw -0.83vw black;
+  }
+
+  .container {
+    width: 88.33vw;
+    box-shadow: 0 0.83vw 5vw -3.33vw black;
+    border-radius: 5vw;
+    margin-bottom: 3.33vw;
+    font-size: 5vw;
+  }
+  .review-container h1 {
+    padding: 3.33vw 0 0;
+    font-size: 6.67vw;
+  }
+  .review-container p {
+    padding: 1.67vw 0;
+  }
+
+  #timer-container {
+    padding: 1.67vw 0;
+  }
+  #timer-container p{
+    font-size: 6.67vw;
+  }
+
+  .canvas-container {
+    height: 88.33vw;
+    margin-bottom: 3.33vw;
+  }
+
+  canvas {
+    top: 1.67vw;
+    width: 83.33vw;
+    height: 83.33vw;
+    border: solid RGB(240,240,240) 0.83vw;
+    border-radius: 4.17vw;
+  }
+
+  .slidecontainer {
+    width: 86.67vw;
+    height: 4.17vw;
+    padding: 0.83vw;
+    border-radius: 5.83vw;
+    box-shadow: 0 0.83vw 2.5vw -1.67vw black;
+    margin-bottom: 0.83vw;
+  }
+  .slider {
+    height: 4.17vw;
+    border-radius: 4.17vw;
+  }
+
+  .slider::-webkit-slider-thumb {
+    width: 4.17vw;
+    height: 4.17vw;
+    border: solid white 0.5vw;
+    border-radius: 2.5vw;
+  }
+
+  .prompt-input {
+    padding: 1.67vw;
+    width: 85vw;
+    font-size: 5vw;
+  }
+  .prompt-input p {
+    padding-bottom: 1.67vw;
+  }
+  .prompt-input textarea {
+    width: 70vw;
+    font-size: 5vw;
+  }
+  .prompt-input input {
+    width: 70vw;
+    font-size: 5vw;
+  }
+  .error-text {
+    padding: 0.83vw;
+    font-size: 2.5vw;
+  }
+
+  #confirm-popup {
+    top: 8.33vw;
+    width: 75vw;
+    box-shadow: 0 0.83vw 5vw -3.33vw black;
+    border-radius: 8.33vw;
+    margin-bottom: 3.33vw;
+    font-size: 5vw;
+  }
+  #confirm-popup h1 {
+    padding: 3.33vw 0 1.67vw;
+    font-size: 5vw;
+  }
+  #confirm-popup p {
+    font-size: 3.33vw;
+  }
+
+  #waiting-text {
+    font-size: 5vw;
+    padding: 3.33vw;
+  }
+
+  #draw-prompt-text {
+    font-size: 5vw;
+    padding: 2.5vw;
+    max-width: 83.33vw;
+  }
 }
