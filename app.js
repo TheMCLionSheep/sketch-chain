@@ -1,3 +1,9 @@
+//node app.js
+
+//git add .
+//git commit -am "Make it better"
+//git commit push heroku master
+
 var express = require("express");
 var app = express();
 var serv = require("http").Server(app);
@@ -21,7 +27,8 @@ var Game = function(playerList, timeLeft) {
     mins: 0,
     secs: 0,
     chains: [],
-    teams: []
+    teams: [],
+    host: -1
   }
   game.updateTime = function() {
     var timeLeft = game.timeEnd - (new Date().getTime());
@@ -98,7 +105,6 @@ var Game = function(playerList, timeLeft) {
   }
   game.finishRound = function() {
     game.roundNumber++;
-    console.log(game.roundNumber);
     if(game.roundNumber >= game.chains.length) {
       game.startNewPhase("review");
     }
@@ -112,7 +118,7 @@ var Game = function(playerList, timeLeft) {
   game.endGame = function() {
     for(var i in game.players) {
       var tempSocket = SOCKET_LIST[i]
-      tempSocket.emit("joinGame");
+      tempSocket.emit("joinGame",true);
     }
     curGame = new Game([], 0);
   }
@@ -202,7 +208,7 @@ Player.list = {};
 Player.onConnect = function(socket, name) {
   var player = Player(socket.id, name);
 
-  socket.emit("joinGame");
+  socket.emit("joinGame",(curGame.host != -1));
   for(var pl in Player.list) {
     var pack = {
       add: true,
@@ -222,6 +228,25 @@ Player.onConnect = function(socket, name) {
       socket.emit("createLine",drawLine);
     }
   }
+
+  socket.on("becomeHost", function(become) {
+    if(become) {
+      curGame.host = socket.id;
+      for(var pl in Player.list) {
+        var tempSocket = SOCKET_LIST[pl];
+        tempSocket.emit("displayHost","none");
+      }
+      socket.emit("displayHost","host");
+    }
+    else {
+      curGame.host = -1;
+      socket.emit("displayHost","none");
+      for(var pl in Player.list) {
+        var tempSocket = SOCKET_LIST[pl];
+        tempSocket.emit("displayHost","normal");
+      }
+    }
+  })
 
   socket.on("linePress", function(event) {
     if(curGame.gamePhase == "draw") {
@@ -297,13 +322,11 @@ Player.onConnect = function(socket, name) {
           nextChain: link.chainID,
           nextLink: link.linkID
         };
-        console.log(packet.nextLink + "  " + packet.nextChain);
         packet.nextLink++;
         if(packet.nextLink >= curGame.chains[link.chainID].chainLinks.length) {
           packet.nextChain++;
           packet.nextLink = 0;
         }
-        console.log(packet.nextLink + "  " + packet.nextChain);
         var tempSocket = SOCKET_LIST[i];
         tempSocket.emit("reviewLink",packet);
       }
@@ -311,7 +334,9 @@ Player.onConnect = function(socket, name) {
   });
 
   socket.on("startGame", function() {
-    curGame.startGame();
+    if(size(Player.list) >= 3) {
+      curGame.startGame();
+    }
   });
 }
 Player.updateLobby = function(add, player) {
@@ -336,6 +361,13 @@ Player.onDisconnect = function(socket) {
       delete curGame.players[socket.id];
     }
     delete Player.list[socket.id];
+    if(curGame.host == socket.id) {
+      curGame.host = -1;
+      for(var pl in Player.list) {
+        var tempSocket = SOCKET_LIST[pl];
+        tempSocket.emit("displayHost","normal")
+      }
+    }
   }
 }
 
@@ -357,8 +389,25 @@ io.sockets.on("connection", function(socket) {
   socket.id = Math.random();
   SOCKET_LIST[socket.id] = socket;
 
-  socket.on("signIn", function(name) {
-    Player.onConnect(socket, name);
+  socket.on("signInRequest", function(name) {
+    var letterNumber = /^[0-9a-zA-Z]+$/;
+    if(name.match(letterNumber)) {
+      var isValid = true;
+      for(var pl in Player.list) {
+        if(Player.list[pl].name == name) {
+          isValid = false;
+        }
+      }
+      if(isValid) {
+        Player.onConnect(socket, name);
+      }
+      else {
+        socket.emit("signInReject","*Name is already taken!");
+      }
+    }
+    else{
+      socket.emit("signInReject","*Only use letters and numbers!");
+    }
   })
 
   socket.on("disconnect",function() {
@@ -366,6 +415,14 @@ io.sockets.on("connection", function(socket) {
     Player.onDisconnect(socket);
   });
 });
+
+function size(obj) {
+  var size = 0;
+  for(var key in obj) {
+    size++;
+  }
+  return size;
+}
 
 setInterval(function() {
   if(curGame.gamePhase == "draw") {
@@ -385,9 +442,5 @@ setInterval(function() {
   }
 
   var packet = [];
-
-  for(var pl in Player.list) {
-    console.log(pl);
-  }
 
 },1000/25);

@@ -39,6 +39,12 @@ button {
 button:hover {
   background-position: right center;
 }
+.toggle-btn {
+  display: none;
+}
+.toggle-btn.active {
+  display: block;
+}
 
 #sign-in__info p{
   padding: 20px;
@@ -168,6 +174,7 @@ canvas {
 .prompt-input p {
   margin: 0;
   width:auto;
+  padding-bottom: 10px
 }
 .prompt-input textarea {
   border: none;
@@ -183,6 +190,50 @@ canvas {
   text-align: center;
   font-family: "Helvetica";
   font-weight: bold;
+}
+.error-text {
+  display: none;
+  padding: 5px;
+  color: red;
+  font-size: 15px;
+}
+.error-text.active {
+  display: block;
+}
+
+#confirm-popup {
+  z-index: 10;
+  display: none;
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  width: 450px;
+  height: auto;
+  background: #ED213A;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to top, #93291E, #ED213A);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to top, #93291E, #ED213A); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  box-shadow: 0 5px 30px -20px black;
+  border-radius: 50px;
+  margin-bottom: 20px;
+  font-size: 30px;
+  text-align: center;
+  font-family: "Helvetica";
+  font-weight: bold;
+  transform: translateX(-50%);
+}
+#confirm-popup.active {
+  display: block;
+}
+#confirm-popup h1 {
+  margin: 0;
+  padding: 20px 0 10px;
+  font-size: 30px;
+  color: white;
+}
+#confirm-popup p {
+  margin:0;
+  font-size: 20px;
+  color: RGB(220,220,220);
 }
 
 #waiting-text {

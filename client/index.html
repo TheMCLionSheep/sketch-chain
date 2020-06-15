@@ -13,22 +13,31 @@
   </head>
   <body>
     <article id="content">
+      <div id="confirm-popup">
+        <h1>Confirm Submit</h1>
+        <p>*This will submit for the whole team</p>
+        <button id="confirm-button" onclick="confirmSubmit()">Confirm</button>
+      </div>
+
       <section id="sign-in" class="active">
         <div class="container prompt-input">
           <p>Enter your name:</p>
           <input type="text" placeholder="Type here" id="name-input">
+          <p class="error-text" id="error-name"></p>
         </div>
         <button id="join-button" onclick="joinGame()">Join Game!</button>
       </section>
 
       <section id="pre-game">
         <div class="container" id="sign-in__info">
-          <p>Waiting for game to start...</p>
+          <p>Waiting for host to start...</p>
         </div>
         <div class="container" id="player-list">
           <h1>Players:</h1>
         </div>
-        <button onclick="startGame()" id="start-btn">Start Game</button>
+        <button onclick="becomeHost(true)" id="host-btn" class="toggle-btn">Become Host</button>
+        <button onclick="becomeHost(false)" id="stop-host-btn" class="toggle-btn">Stop Hosting</button>
+        <button onclick="startGame()" id="start-btn" class="toggle-btn">Start Game</button>
       </section>
 
       <section id="waiting-phase">
@@ -41,8 +50,9 @@
         <div class="container prompt-input">
           <p>Enter any phrase:</p>
           <textarea rows="4" placeholder="Write here" value="" id="prompt-area"></textarea>
+          <p class="error-text" id="error-prompt"></p>
         </div>
-        <button id="prompt-button" onclick="submitPhrase()">Submit Phrase</button>
+        <button id="prompt-button" onclick="showPopup('phrase');">Submit Phrase</button>
       </section>
 
       <section id="draw-phase">
@@ -62,25 +72,29 @@
           <input type="range" min="1" max="20" value="10" class="slider" id="size-slider">
         </div>
         <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button>
-        <button id="draw-button" onclick="submitDrawing()">Submit Drawing</button>
+        <button id="draw-button" onclick="showPopup('drawing');">Submit Drawing</button>
       </section>
 
       <section id="guess-phase">
         <div class="container prompt-input">
           <p>Enter your guess:</p>
           <textarea id="guess-area" placeholder="Write here" rows="4" value="Hel"></textarea>
+          <p class="error-text" id="error-guess"></p>
         </div>
         <div class="container canvas-container">
           <canvas class="showcase-canvas" id="guess-canvas" width="500" height="500"></canvas>
         </div>
-        <button id="guess-button" onclick="submitGuess()">Submit Guess</button>
+        <button id="guess-button" onclick="showPopup('guess');">Submit Guess</button>
       </section>
 
       <section id="review-phase"></section>
     </article>
     <script>
       var signInSection = document.querySelector("#sign-in");
+      var hostBtn = document.querySelector("#host-btn");
+      var quitHostBtn = document.querySelector("#stop-host-btn");
       var nameInput = document.querySelector("#name-input");
+      var errorName = document.querySelector("#error-name");
       var joinBtn = document.querySelector("#join-button");
       var preGameSection = document.querySelector("#pre-game");
       var playerList = document.querySelector("#player-list");
@@ -100,17 +114,30 @@
       var guessArea = document.querySelector("#guess-area");
       var guessBtn = document.querySelector("#guess-button");
       var reviewSection = document.querySelector("#review-phase");
+      var popup = document.querySelector("#confirm-popup");
+      var popupBtn = document.querySelector("#confirm-button");
       var startBtn = document.querySelector("#start-btn");
 
       var curButton = joinBtn;
 
       const socket = io();
 
-      socket.on("joinGame", function() {
+      socket.on("signInReject", function(reason) {
+        errorName.innerHTML = reason;
+        errorName.classList.add("active");
+      });
+
+      socket.on("joinGame", function(host) {
         signInSection.classList.remove("active");
         reviewSection.classList.remove("active");
         preGameSection.classList.add("active");
-        curButton = startBtn;
+        if(host) {
+          hostBtn.classList.remove("active");
+        }
+        else {
+          hostBtn.classList.add("active");
+        }
+        curButton = null;
       });
 
       // socket.on("preGameLobby", function(packet) {
@@ -121,6 +148,25 @@
 
       socket.on("playerLobby", function(packet) {
         addToLobby(packet.add, packet.name);
+      });
+
+      socket.on("displayHost", function(display){
+        switch (display) {
+          case "none":
+            hostBtn.classList.remove("active");
+            quitHostBtn.classList.remove("active");
+            startBtn.classList.remove("active");
+            break;
+          case "host":
+            quitHostBtn.classList.add("active");
+            startBtn.classList.add("active");
+            break;
+          case "normal":
+            hostBtn.classList.add("active");
+            break;
+          default:
+            break;
+        }
       });
 
       socket.on("createLine",function(data){
@@ -201,7 +247,7 @@
       });
 
       function joinGame() {
-        socket.emit("signIn",nameInput.value.replace(/\s/g,''));
+        socket.emit("signInRequest",nameInput.value);
       }
 
       function addToLobby(add, name) {
@@ -220,6 +266,10 @@
             playerList.removeChild(p);
           }
         }
+      }
+
+      function becomeHost(become) {
+        socket.emit("becomeHost", become);
       }
 
       var painting = false;
@@ -305,8 +355,33 @@
         socket.emit("textChange",this.value);
       }
 
+      function showPopup(type) {
+        popup.classList.add("active");
+        popup.setAttribute("onclick","confirmSubmit('" + type + "');");
+      }
+
+      function confirmSubmit(type) {
+        switch (type) {
+          case "phrase":
+            submitPhrase();
+            break;
+          case "drawing":
+            submitDrawing();
+            break;
+          case "guess":
+            submitGuess();
+            break;
+          default:
+            break;
+        }
+        popup.classList.remove("active");
+      }
+
       function submitPhrase() {
-        socket.emit("promptSubmit", promptArea.value);
+        var whiteSpace = promptArea.value.replace(/\s/g,'');
+        if(whiteSpace != "") {
+          socket.emit("promptSubmit", promptArea.value);
+        }
       }
 
       function submitDrawing() {
@@ -314,7 +389,10 @@
       }
 
       function submitGuess() {
-        socket.emit("promptSubmit", guessArea.value);
+        var whiteSpace = guessArea.value.replace(/\s/g,'');
+        if(whiteSpace != "") {
+          socket.emit("promptSubmit", guessArea.value);
+        }
       }
 
       promptArea.addEventListener("input", writePrompt);
@@ -353,7 +431,7 @@
         newCanvas.setAttribute("width",500);
         newCanvas.setAttribute("height",500);
 
-        canvasContainer.setAttribute("class","canvas-container");
+        canvasContainer.setAttribute("class","container canvas-container");
         for(var i = 0; i < drawing.lineList.length; i++) {
           drawLine(newCanvas.getContext("2d"), drawing.lineList[i].startX, drawing.lineList[i].startY, drawing.lineList[i].endX, drawing.lineList[i].endY, drawing.lineList[i].radius, drawing.lineList[i].color);
         };
