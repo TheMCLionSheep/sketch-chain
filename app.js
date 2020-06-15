@@ -361,6 +361,7 @@ Player.updateLobby = function(add, player) {
   }
 }
 Player.onDisconnect = function(socket) {
+  console.log(socket + " left the game.");
   if(Player.list[socket.id] != null) {
     if(curGame.gamePhase == "notStarted") {
       Player.updateLobby(false, Player.list[socket.id]);
