@@ -35,9 +35,11 @@ var Game = function(playerList, timeLeft) {
     host: -1
   }
   game.updateTime = function() {
-    game.timeLeft --;
+    game.timeEnd -= 1;
+    game.mins = Math.floor(game.timeEnd/60);
+    game.secs = Math.floor(game.timeEnd%60);
 
-    return (game.timeLeft >= 0);
+    return (game.timeEnd >= 0);
   }
   game.addPlayer = function(player) {
     game.players[player.id] = player;
