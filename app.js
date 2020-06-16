@@ -27,7 +27,7 @@ var Game = function(playerList, timeLeft) {
     players: playerList,
     gamePhase: "draw",
     roundNumber: 0,
-    timeEnd: (new Date().getTime()) + timeLeft*1000,
+    timeEnd: timeLeft,
     mins: 0,
     secs: 0,
     chains: [],
@@ -35,11 +35,9 @@ var Game = function(playerList, timeLeft) {
     host: -1
   }
   game.updateTime = function() {
-    var timeLeft = game.timeEnd - (new Date().getTime());
-    game.mins = Math.floor((timeLeft % (1000 * 60 * 60))/(1000 * 60));
-    game.secs = Math.floor((timeLeft % (1000 * 60))/1000);
+    game.timeLeft --;
 
-    return (game.mins >= 0 && game.secs >= 0);
+    return (game.timeLeft >= 0);
   }
   game.addPlayer = function(player) {
     game.players[player.id] = player;
@@ -570,4 +568,4 @@ setInterval(function() {
 
   var packet = [];
 
-},1000/25);
+},1000);
