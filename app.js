@@ -165,7 +165,7 @@ var Game = function(playerList, timeLeft) {
   }
   return game;
 }
-var curGame = new Game([], 1000);
+var curGame = new Game([], 30);
 
 var Chain = function(id) {
   var chain = {
