@@ -37,7 +37,7 @@
         socket.emit('login',null);">Dev</button>
       </div>
 
-      <section id="sign-in" class="active">
+      <section id="sign-in">
         <div class="container prompt-input">
           <p>Enter your name:</p>
           <input maxlength="20" type="text" placeholder="Type here" id="name-input">
@@ -70,7 +70,7 @@
         <button id="prompt-button" onclick="showPopup('phrase');">Submit Phrase</button>
       </section>
 
-      <section id="draw-phase">
+      <section id="draw-phase" class="active">
         <div class="container" id="timer-container">
           <p id="timer">0:00</p>
         </div>
@@ -144,7 +144,7 @@
       const socket = io();
 
       socket.on("connect",function(){
-        socket.emit("login",localStorage.getItem("playerID"));
+        //socket.emit("login",localStorage.getItem("playerID"));
       });
 
       socket.on("disconnect", function() {

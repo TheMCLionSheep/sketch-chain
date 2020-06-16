@@ -25,7 +25,7 @@ var emptyImage;
 var Game = function(playerList, timeLeft) {
   var game = {
     players: playerList,
-    gamePhase: "notStarted",
+    gamePhase: "draw",
     roundNumber: 0,
     timeEnd: (new Date().getTime()) + timeLeft*1000,
     mins: 0,
@@ -245,27 +245,27 @@ Player.list = {};
 Player.onConnect = function(socket, name, returningPlayer = false) {
   var player = Player(socket.id, name);
 
-  socket.emit("joinGame",(curGame.host != -1),socket.id);
-  for(var pl in Player.list) {
-    var pack = {
-      add: true,
-      name: Player.list[pl].name
-    }
-    if(pl == player.id) {
-      continue;
-    }
-    socket.emit("playerLobby",pack);
-  }
-  Player.updateLobby(true, player);
-
-  if(returningPlayer) {
-    if(curGame.teams[player.teamID].finished || curGame.gamePhase != "review") {
-      socket.emit("gamePhase", "waiting");
-    }
-  }
-  else {
-    Player.list[socket.id].canSubmit = true;
-  }
+  // socket.emit("joinGame",(curGame.host != -1),socket.id);
+  // for(var pl in Player.list) {
+  //   var pack = {
+  //     add: true,
+  //     name: Player.list[pl].name
+  //   }
+  //   if(pl == player.id) {
+  //     continue;
+  //   }
+  //   socket.emit("playerLobby",pack);
+  // }
+  // Player.updateLobby(true, player);
+  //
+  // if(returningPlayer) {
+  //   if(curGame.teams[player.teamID].finished || curGame.gamePhase != "review") {
+  //     socket.emit("gamePhase", "waiting");
+  //   }
+  // }
+  // else {
+  //   Player.list[socket.id].canSubmit = true;
+  // }
 
   socket.on("becomeHost", function(become) {
     if(become) {
@@ -305,10 +305,15 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         // var chainID = curGame.teams[player.teamID].curChain;
         // var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber]);
         var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color);
+        lineList.push(line);
         player.updatePosition(event.x,event.y);
 
         //Adds line for all sockets in team
-        for(var i in curGame.teams[player.teamID].players) {
+        // for(var i in curGame.teams[player.teamID].players) {
+        //   var tempSoc = SOCKET_LIST[i];
+        //   tempSoc.emit("createLine",line);
+        // }
+        for(var i in Player.list) {
           var tempSoc = SOCKET_LIST[i];
           tempSoc.emit("createLine",line);
         }
@@ -335,6 +340,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         var tempSoc = SOCKET_LIST[i];
         tempSoc.emit("gamePhase","waiting");
       }
+
 
       curGame.teams[player.teamID].finished = true;
       curGame.checkFinished();
@@ -472,6 +478,10 @@ var Line = function(startX, startY, endX, endY, radius, color) {
 
 var io = require("socket.io") (serv,{});
 io.sockets.on("connection", function(socket) {
+  socket.id = Math.random();
+  SOCKET_LIST[socket.id] = socket;
+  Player.onConnect(socket, "name", true);
+
   socket.on("login", function(savedID) {
     if(savedID != null && Player.list[savedID] != null) {
       socket.emit("rejoinPopup");
@@ -528,6 +538,8 @@ function size(obj) {
   }
   return size;
 }
+
+var lineList = [];
 
 setInterval(function() {
   if(curGame.gamePhase == "draw") {
