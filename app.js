@@ -197,6 +197,13 @@ var Phrase = function(text = "") {
   return phrase;
 }
 
+var Drawing = function() {
+  var drawing = {
+    lineList: []
+  }
+  return drawing;
+}
+
 var Team = function(playerList, id) {
   var team = {
     players: playerList,
@@ -222,6 +229,10 @@ Team.fillTeams = function(game) {
   // }
   // game.teams.push(newTeam);
 }
+
+curGame.teams[0] = new Team([],0);
+curGame.chains[0] = new Chain(0);
+curGame.chains[0].chainLinks[0] = new Drawing();
 
 var Player = function(id, name) {
   var self = {
@@ -302,10 +313,9 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       }
 
       if(player.painting) {
-        // var chainID = curGame.teams[player.teamID].curChain;
-        // var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber]);
-        var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color);
-        lineList.push(line);
+        var chainID = curGame.teams[player.teamID].curChain;
+        var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber].lineList);
+        //var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, lineList);
         player.updatePosition(event.x,event.y);
 
         //Adds line for all sockets in team
@@ -464,7 +474,7 @@ Player.onDisconnect = function(id) {
   }
 }
 
-var Line = function(startX, startY, endX, endY, radius, color) {
+var Line = function(startX, startY, endX, endY, radius, color, list) {
   var line = {
     startX: startX,
     startY: startY,
@@ -473,6 +483,7 @@ var Line = function(startX, startY, endX, endY, radius, color) {
     radius: radius,
     color: color
   }
+  list.push(line);
   return line;
 }
 
