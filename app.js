@@ -165,7 +165,7 @@ var Game = function(playerList, timeLeft) {
   }
   return game;
 }
-var curGame = new Game([], 0);
+var curGame = new Game([], 10000);
 
 var Chain = function(id) {
   var chain = {
@@ -315,18 +315,17 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       if(player.painting) {
         var chainID = curGame.teams[player.teamID].curChain;
         var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber].lineList);
-        //var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, lineList);
         player.updatePosition(event.x,event.y);
 
         //Adds line for all sockets in team
-        // for(var i in curGame.teams[player.teamID].players) {
-        //   var tempSoc = SOCKET_LIST[i];
-        //   tempSoc.emit("createLine",line);
-        // }
-        for(var i in Player.list) {
+        for(var i in curGame.teams[player.teamID].players) {
           var tempSoc = SOCKET_LIST[i];
           tempSoc.emit("createLine",line);
         }
+        // for(var i in Player.list) {
+        //   var tempSoc = SOCKET_LIST[i];
+        //   tempSoc.emit("createLine",line);
+        // }
       }
     }
   });
