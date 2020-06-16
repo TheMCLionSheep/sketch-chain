@@ -12,12 +12,29 @@
     <link rel="stylesheet" href="/client/css/main.css">
   </head>
   <body>
-    <div id="scrim" onclick="hidePopup()"></div>
+    <div id="scrim" class="scrim" onclick="hidePopup()"></div>
+    <div id="rejoin-scrim" class="scrim"></div>
     <article id="content">
-      <div id="confirm-popup">
+      <div id="confirm-popup" class="popup">
         <h1>Confirm Submit</h1>
         <p>*This will submit for the whole team</p>
         <button id="confirm-button" onclick="confirmSubmit()">Confirm</button>
+      </div>
+
+      <div id="disconnect" class="popup">
+        <h1>Sorry you disconnected!</h1>
+        <p>Please reload...</p>
+        <button onclick="location.reload()">Reload</button>
+      </div>
+
+      <div id="rejoin" class="popup">
+        <h1>Welcome back!</h1>
+        <p>Old player detected...</p>
+        <button onclick="rejoinGame()">Rejoin</button>
+        <button onclick="newPlayer()">New Player</button>
+        <button onclick="rejoinScrim.classList.remove('active');
+        rejoinSection.classList.remove('active');
+        socket.emit('login',null);">Dev</button>
       </div>
 
       <section id="sign-in" class="active">
@@ -29,22 +46,19 @@
         <button id="join-button" onclick="joinGame()">Join Game!</button>
       </section>
 
-      <section id="pre-game">
-        <div class="container" id="sign-in__info">
+      <section id="waiting-phase">
+        <div class="container" id="waiting__info">
           <p>Waiting for host to start...</p>
         </div>
         <div class="container" id="player-list">
           <h1>Players:</h1>
         </div>
+      </section>
+
+      <section id="pre-game">
         <button onclick="becomeHost(true)" id="host-btn" class="toggle-btn">Become Host</button>
         <button onclick="becomeHost(false)" id="stop-host-btn" class="toggle-btn">Stop Hosting</button>
         <button onclick="startGame()" id="start-btn" class="toggle-btn">Start Game</button>
-      </section>
-
-      <section id="waiting-phase">
-        <div class="container">
-          <p id="waiting-text">Waiting for other teams to finish...</p>
-        </div>
       </section>
 
       <section id="prompt-phase">
@@ -92,6 +106,9 @@
       <section id="review-phase"></section>
     </article>
     <script>
+      var disconnectSection = document.querySelector("#disconnect");
+      var rejoinSection = document.querySelector("#rejoin");
+      var rejoinScrim = document.querySelector("#rejoin-scrim");
       var signInSection = document.querySelector("#sign-in");
       var hostBtn = document.querySelector("#host-btn");
       var quitHostBtn = document.querySelector("#stop-host-btn");
@@ -122,16 +139,33 @@
 
       var curButton = joinBtn;
 
+      var lastConnection = new Date().getTime();
+
       const socket = io();
+
+      socket.on("connect",function(){
+        socket.emit("login",localStorage.getItem("playerID"));
+      });
+
+      socket.on("disconnect", function() {
+        scrim.classList.add("active");
+        disconnectSection.classList.add("active");
+      });
+
+      socket.on("rejoinPopup", function() {
+        rejoinScrim.classList.add("active");
+        rejoinSection.classList.add("active");
+      })
 
       socket.on("signInReject", function(reason) {
         errorName.innerHTML = reason;
         errorName.classList.add("active");
       });
 
-      socket.on("joinGame", function(host) {
+      socket.on("joinGame", function(host, id) {
         signInSection.classList.remove("active");
         reviewSection.classList.remove("active");
+        waitSection.classList.add("active");
         preGameSection.classList.add("active");
         if(host) {
           hostBtn.classList.remove("active");
@@ -151,6 +185,10 @@
       socket.on("playerLobby", function(packet) {
         addToLobby(packet.add, packet.name);
       });
+
+      socket.on("saveID", function(id) {
+        localStorage.setItem("playerID", id);
+      })
 
       socket.on("displayHost", function(display){
         switch (display) {
@@ -194,32 +232,29 @@
       });
 
       socket.on("gamePhase",function(phase){
+        preGameSection.classList.remove("active");
+        promptSection.classList.remove("active");
+        waitSection.classList.remove("active");
+        drawSection.classList.remove("active");
+        guessSection.classList.remove("active");
+        reviewSection.classList.remove("active");
         switch(phase) {
           case "prompt":
-            preGameSection.classList.remove("active");
             promptSection.classList.add("active");
-            startBtn.classList.remove("active");
             curButton = promptBtn;
             break;
           case "waiting":
             waitSection.classList.add("active");
-            promptSection.classList.remove("active");
-            drawSection.classList.remove("active");
-            guessSection.classList.remove("active");
             curButton = null;
             break;
           case "draw":
             drawSection.classList.add("active");
-            waitSection.classList.remove("active");
             curButton = drawBtn;
             break;
           case "guess":
-            waitSection.classList.remove("active");
             guessSection.classList.add("active");
-            drawSection.classList.remove("active");
             curButton = guessBtn;
           case "review":
-            waitSection.classList.remove("active");
             reviewSection.classList.add("active");
           default:
             break;
@@ -251,6 +286,19 @@
         }
         updateArrowButtons(packet.nextChain, packet.nextLink);
       });
+
+      function newPlayer() {
+        rejoinScrim.classList.remove("active");
+        rejoinSection.classList.remove("active");
+        socket.emit("deleteAccount",localStorage.getItem("playerID"));
+        socket.emit("login",null);
+      }
+
+      function rejoinGame() {
+        rejoinScrim.classList.remove("active");
+        rejoinSection.classList.remove("active");
+        socket.emit("rejoinGame");
+      }
 
       function joinGame() {
         socket.emit("signInRequest",nameInput.value);

@@ -46,7 +46,7 @@ button:hover {
   display: block;
 }
 
-#sign-in__info p{
+#waiting__info p{
   padding: 20px;
 }
 #player-list {
@@ -67,12 +67,17 @@ button:hover {
   padding: 5px 10px;
   font-size: 30px;
   width: auto;
-  background: #232526;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(345deg, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(345deg, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #56ab2f;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #061700, #52c234);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #061700, #52c234); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   border-radius: 10px;
   color: white;
   box-shadow: 0 3px 10px -5px black;
+}
+#player-list p.gray{
+  background: #232526;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 .container {
@@ -212,7 +217,7 @@ canvas {
   display: block;
 }
 
-#scrim {
+.scrim {
   display: none;
   position: fixed;
   width: 100vw;
@@ -220,11 +225,11 @@ canvas {
   background: RGB(0,0,0, 0.7);
   z-index: 5;
 }
-#scrim.active {
+.scrim.active {
   display: block;
 }
 
-#confirm-popup {
+.popup {
   z-index: 10;
   display: none;
   position: fixed;
@@ -244,16 +249,16 @@ canvas {
   font-weight: bold;
   transform: translateX(-50%);
 }
-#confirm-popup.active {
+.popup.active {
   display: block;
 }
-#confirm-popup h1 {
+.popup h1 {
   margin: 0;
   padding: 20px 0 10px;
   font-size: 30px;
   color: white;
 }
-#confirm-popup p {
+.popup p {
   margin:0;
   font-size: 20px;
   color: RGB(220,220,220);
@@ -330,7 +335,7 @@ canvas {
     font-size: 5vw;
   }
 
-  #sign-in__info p{
+  #waiting__info p{
     padding: 3.33vw;
   }
   #player-list h1{
@@ -429,7 +434,7 @@ canvas {
     font-size: 2.5vw;
   }
 
-  #confirm-popup {
+  .popup {
     top: 8.33vw;
     width: 75vw;
     box-shadow: 0 0.83vw 5vw -3.33vw black;
@@ -437,11 +442,11 @@ canvas {
     margin-bottom: 3.33vw;
     font-size: 5vw;
   }
-  #confirm-popup h1 {
+  .popup h1 {
     padding: 3.33vw 0 1.67vw;
     font-size: 5vw;
   }
-  #confirm-popup p {
+  .popup p {
     font-size: 3.33vw;
   }
 
@@ -454,5 +459,13 @@ canvas {
     font-size: 5vw;
     padding: 2.5vw;
     max-width: 83.33vw;
+  }
+
+  #disconnect h1 {
+    padding: 3.33vw 0 0;
+  }
+  #disconnect p {
+    margin: 0;
+    padding: 1.67vw;
   }
 }
