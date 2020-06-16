@@ -63,6 +63,19 @@ var Game = function(playerList, timeLeft) {
       Chain.createChains(this);
     }
   }
+  game.submitDrawings = function() {
+    for(var i = 0; i < game.teams.length; i++) {
+      for(var pl in game.teams[i].players) {
+        if(game.players[pl].canSubmit) {
+          var tempSocket = SOCKET_LIST[pl];
+          if(tempSocket != null) {
+            tempSocket.emit("requestDrawing");
+          }
+          continue;
+        }
+      }
+    }
+  }
   game.startNewPhase = function(phaseName) {
     game.gamePhase = phaseName;
     if(phaseName == "draw") {
@@ -112,6 +125,20 @@ var Game = function(playerList, timeLeft) {
         return;
       }
     }
+    if(game.gamePhase == "draw") {
+      game.submitDrawings();
+    }
+    else {
+      game.finishRound();
+    }
+  }
+  game.checkSubmitted = function() {
+    for(var i = 0; i < game.teams.length; i++) {
+      if(!game.teams[i].submitted) {
+        return;
+      }
+    }
+    console.log("All drawings submitted!");
     game.finishRound();
   }
   game.finishRound = function() {
@@ -175,7 +202,8 @@ var Team = function(playerList, id) {
     players: playerList,
     id: id,
     curChain: 0,
-    finished: false
+    finished: false,
+    submitted: false,
   }
   return team;
 }
@@ -203,7 +231,8 @@ var Player = function(id, name) {
     painting: false,
     teamID: 0,
     name: name,
-    online: true
+    online: true,
+    canSubmit: false
   }
   self.updatePosition = function(x, y) {
     self.lastX = x;
@@ -234,14 +263,9 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       socket.emit("gamePhase", "waiting");
     }
   }
-
-  // if(curGame.gamePhase == "draw") {
-  //   //Load canvas
-  //   for(var i in curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber]) {
-  //     var drawLine = curGame.chains[curGame.teams[player.teamID].curChain].chainLinks[curGame.roundNumber][i];
-  //     socket.emit("createLine",drawLine);
-  //   }
-  // }
+  else {
+    Player.list[socket.id].canSubmit = true;
+  }
 
   socket.on("becomeHost", function(become) {
     if(become) {
@@ -317,19 +341,28 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     }
   });
 
-  socket.on("drawingSubmit", function(drawingImg) {
-    console.log("Drawing Request from " + player.name);
+  socket.on("drawingFinish", function() {
+    console.log("Drawing Finished from " + player.name);
     if(curGame.gamePhase == "draw") {
       //Set waiting for team
       for(var i in curGame.teams[player.teamID].players) {
         var tempSoc = SOCKET_LIST[i];
         tempSoc.emit("gamePhase","waiting");
       }
-      var chainID = curGame.teams[player.teamID].curChain;
-      curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
 
       curGame.teams[player.teamID].finished = true;
       curGame.checkFinished();
+    }
+  });
+
+  socket.on("drawingSubmit", function(drawingImg) {
+    console.log("Drawing Submit from " + player.name);
+    if(curGame.gamePhase == "draw") {
+      var chainID = curGame.teams[player.teamID].curChain;
+      curGame.chains[chainID].chainLinks[curGame.roundNumber] = drawingImg;
+
+      curGame.teams[player.teamID].submitted = true;
+      curGame.checkSubmitted();
     }
   });
 
@@ -397,6 +430,7 @@ Player.onDisconnect = function(id) {
       }
     }
     else {
+      curGame.players[id].canSubmit = false;
       curGame.players[id].online = false;
       for(var pl in curGame.teams[curGame.players[id].teamID].players) {
         if(curGame.players[pl].online) {
@@ -505,7 +539,7 @@ setInterval(function() {
       }
     }
     else {
-      curGame.finishRound();
+      curGame.submitDrawings();
     }
   }
   // if(curGame.gamePhase != "notStarted") {

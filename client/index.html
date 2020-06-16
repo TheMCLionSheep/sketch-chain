@@ -223,6 +223,10 @@
         guessImg.src = drawing
       });
 
+      socket.on("requestDrawing", function(){
+        socket.emit("drawingSubmit", canvas.toDataURL());
+      })
+
       socket.on("changeText", function(text) {
         promptArea.value = text;
       });
@@ -498,7 +502,7 @@
       }
 
       function submitDrawing() {
-        socket.emit("drawingSubmit", canvas.toDataURL());
+        socket.emit("drawingFinish");
       }
 
       function submitGuess() {
