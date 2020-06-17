@@ -215,16 +215,26 @@
         drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color);
       });
 
-      socket.on("showDrawing", function(drawing){
-        drawLines(guessCtx, drawing);
+      socket.on("showDrawing", function(drawing, isDrawCanvas){
+        if(isDrawCanvas) {
+          drawLines(ctx, drawing);
+        }
+        else {
+          drawLines(guessCtx, drawing);
+        }
       });
 
       // socket.on("requestDrawing", function(){
       //   socket.emit("drawingSubmit", canvas.toDataURL());
       // })
 
-      socket.on("changeText", function(text) {
-        promptArea.value = text;
+      socket.on("changeText", function(text, isPrompt) {
+        if(isPrompt) {
+          promptArea.value = text;
+        }
+        else {
+          guessArea.value = text;
+        }
       });
 
       socket.on("gamePhase",function(phase){
@@ -244,10 +254,12 @@
             curButton = null;
             break;
           case "draw":
+            clearCanvas(ctx);
             drawSection.classList.add("active");
             curButton = drawBtn;
             break;
           case "guess":
+            guessArea.value = "";
             guessSection.classList.add("active");
             curButton = guessBtn;
           case "review":
@@ -312,14 +324,26 @@
         }
         else {
           p = document.querySelector("#lobby-name__" + name);
+          if(type == "host") {
+            p.classList.add("host");
+            return;
+          }
+          else if(type == "stopHost") {
+            p.classList.remove("host");
+            return;
+          }
+          p.classList.remove("green");
+          p.classList.remove("gray");
+          p.classList.remove("red");
           if(p != null) {
             if(type == "gray") {
-              p.classList.remove("green");
               p.classList.add("gray");
             }
             else if(type == "green") {
               p.classList.add("green");
-              p.classList.remove("gray");
+            }
+            else if(type == "red") {
+              p.classList.add("red");
             }
             else if(type == "remove") {
               playerList.removeChild(p);

@@ -67,9 +67,9 @@ button:hover {
   padding: 5px 10px;
   font-size: 30px;
   width: auto;
-  background: #56ab2f;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(165deg, #a8e063, #56ab2f);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(165deg, #a8e063, #56ab2f); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #00B4DB;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #0083B0, #00B4DB);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #0083B0, #00B4DB); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   border-radius: 10px;
   color: white;
   box-shadow: 0 3px 10px -5px black;
@@ -78,6 +78,19 @@ button:hover {
   background: #232526;  /* fallback for old browsers */
   background: -webkit-linear-gradient(165deg, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(165deg, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+#player-list p.red{
+  background: #f85032;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #e73827, #f85032);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #e73827, #f85032); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+#player-list p.green{
+  background: #56ab2f;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(165deg, #a8e063, #56ab2f);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(165deg, #a8e063, #56ab2f); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+#player-list p.host{
+  box-shadow: 0 0 20px 5px gold;
 }
 
 .container {
@@ -339,6 +352,9 @@ canvas {
     font-size: 5vw;
     border-radius: 1.67vw;
     box-shadow: 0 0.5vw 1.67vw -0.83vw black;
+  }
+  #player-list p.host{
+    box-shadow: 0 0 3.33vw 8.33vw gold;
   }
 
   .container {
