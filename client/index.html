@@ -37,7 +37,7 @@
         socket.emit('login',null);">Dev</button>
       </div>
 
-      <section id="sign-in">
+      <section id="sign-in" class="active">
         <div class="container prompt-input">
           <p>Enter your name:</p>
           <input maxlength="20" type="text" placeholder="Type here" id="name-input">
@@ -70,10 +70,7 @@
         <button id="prompt-button" onclick="showPopup('phrase');">Submit Phrase</button>
       </section>
 
-      <section id="draw-phase" class="active">
-        <div class="container" id="timer-container">
-          <p id="timer">0:00</p>
-        </div>
+      <section id="draw-phase">
         <div class="container">
           <p id="draw-prompt-text">Draw: </p>
         </div>
@@ -97,8 +94,7 @@
           <p class="error-text" id="error-guess"></p>
         </div>
         <div class="container canvas-container">
-          <!-- <canvas class="showcase-canvas" id="guess-canvas" width="500" height="500"></canvas> -->
-          <img class="drawing-img" id="guess-img" src="" alt="Image loading...">
+          <canvas id="guess-canvas" width="500" height="500"></canvas>
         </div>
         <button id="guess-button" onclick="showPopup('guess');">Submit Guess</button>
       </section>
@@ -119,8 +115,8 @@
       var playerList = document.querySelector("#player-list");
       var canvas = document.querySelector("#drawing-canvas");
       var ctx = canvas.getContext("2d");
-      var guessImg = document.querySelector("#guess-img");
-      var timer = document.querySelector("#timer");
+      var guessCanvas = document.querySelector("#guess-canvas");
+      var guessCtx = guessCanvas.getContext("2d");
       var waitSection = document.querySelector("#waiting-phase");
       var promptSection = document.querySelector("#prompt-phase");
       var promptArea = document.querySelector("#prompt-area");
@@ -144,7 +140,7 @@
       const socket = io();
 
       socket.on("connect",function(){
-        //socket.emit("login",localStorage.getItem("playerID"));
+        socket.emit("login",localStorage.getItem("playerID"));
       });
 
       socket.on("disconnect", function() {
@@ -212,27 +208,23 @@
       socket.on("restartGame", function() {
         promptArea.value = "";
         guessArea.value = "";
-        clearCanvas();
+        clearCanvas(ctx);
       })
 
       socket.on("createLine",function(data){
-        drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color)
+        drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color);
       });
 
       socket.on("showDrawing", function(drawing){
-        guessImg.src = drawing
+        drawLines(guessCtx, drawing);
       });
 
-      socket.on("requestDrawing", function(){
-        socket.emit("drawingSubmit", canvas.toDataURL());
-      })
+      // socket.on("requestDrawing", function(){
+      //   socket.emit("drawingSubmit", canvas.toDataURL());
+      // })
 
       socket.on("changeText", function(text) {
         promptArea.value = text;
-      });
-
-      socket.on("updateTime",function(data){
-        timer.innerHTML = data.mins + ":" + (data.secs < 10 ? "0" + data.secs : data.secs);
       });
 
       socket.on("gamePhase",function(phase){
@@ -308,9 +300,9 @@
         socket.emit("signInRequest",nameInput.value);
       }
 
-      function addToLobby(add, name) {
+      function addToLobby(type, name) {
         var p;
-        if(add) {
+        if(type == "add") {
           p = document.createElement("p");
 
           p.setAttribute("id","lobby-name__" + name);
@@ -321,7 +313,17 @@
         else {
           p = document.querySelector("#lobby-name__" + name);
           if(p != null) {
-            playerList.removeChild(p);
+            if(type == "gray") {
+              p.classList.remove("green");
+              p.classList.add("gray");
+            }
+            else if(type == "green") {
+              p.classList.add("green");
+              p.classList.remove("gray");
+            }
+            else if(type == "remove") {
+              playerList.removeChild(p);
+            }
           }
         }
       }
@@ -431,8 +433,14 @@
         can.lineTo(endX, endY);
         can.stroke();
       }
-      function clearCanvas() {
-        ctx.clearRect(0,0,500,500);
+      function drawLines(can, drawing) {
+        for(var i = 0; i < drawing.lineList.length; i++) {
+          var line = drawing.lineList[i];
+          drawLine(can, line.startX, line.startY, line.endX, line.endY, line.radius, line.color);
+        }
+      }
+      function clearCanvas(can) {
+        can.clearRect(0,0,500,500);
       }
 
       canvas.addEventListener("mousedown", startDrawing);
@@ -497,26 +505,23 @@
       function submitPhrase() {
         var whiteSpace = promptArea.value.replace(/\s/g,'');
         if(whiteSpace != "") {
-          socket.emit("promptSubmit", promptArea.value);
+          socket.emit("promptSubmit");
         }
       }
 
       function submitDrawing() {
-        socket.emit("drawingFinish");
+        socket.emit("drawingSubmit");
       }
 
       function submitGuess() {
         var whiteSpace = guessArea.value.replace(/\s/g,'');
         if(whiteSpace != "") {
-          console.log("submitted");
-          socket.emit("promptSubmit", guessArea.value);
-        }
-        else {
-          console.log("error")
+          socket.emit("promptSubmit");
         }
       }
 
       promptArea.addEventListener("input", writePrompt);
+      guessArea.addEventListener("input", writePrompt);
 
       function createText(parent, header, text) {
         var container = document.createElement("div");
@@ -546,14 +551,15 @@
 
       function createDrawing(drawing) {
         var canvasContainer = document.createElement("div");
-        var newImg = document.createElement("img");
+        var newCanvas = document.createElement("canvas");
         var chainSection = document.querySelector("#chain-showcase");
 
         canvasContainer.setAttribute("class","container canvas-container");
-        newImg.src = drawing;
-        newImg.setAttribute("class","drawing-img");
+        newCanvas.setAttribute("width",500);
+        newCanvas.setAttribute("height",500);
+        drawLines(newCanvas.getContext("2d"), drawing);
 
-        canvasContainer.appendChild(newImg);
+        canvasContainer.appendChild(newCanvas);
         chainSection.appendChild(canvasContainer);
       }
 
