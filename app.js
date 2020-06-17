@@ -240,7 +240,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     var player = Player.list[socket.id];
   }
   else {
-    var player = Player(socket.id, name, HSLToRGB(Math.floor(Math.random()*360) ,100, 50));
+    var player = Player(socket.id, name, HSLToRGB(Math.floor(Math.random()*360) ,100, Math.floor(Math.random()*80)+10));
   }
 
   socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"));
@@ -573,8 +573,8 @@ io.sockets.on("connection", function(socket) {
     })
 
     socket.on("signInRequest", function(name) {
-      if(name.length > 20) {
-        socket.emit("signInReject","*Max character length of 20!");
+      if(name.length > 10) {
+        socket.emit("signInReject","*Max character length of 10!");
       }
       else {
         var letterNumber = /^[0-9a-zA-Z]+$/;

@@ -40,7 +40,7 @@
       <section id="sign-in" class="active">
         <div class="container prompt-input">
           <p>Enter your name:</p>
-          <input maxlength="20" type="text" placeholder="Type here" id="name-input">
+          <input maxlength="10" type="text" placeholder="Type here" id="name-input">
           <p class="error-text" id="error-name"></p>
         </div>
         <button id="join-button" onclick="joinGame()">Join Game!</button>
@@ -216,6 +216,7 @@
         lobbyMusic.addEventListener("ended", function() {
           lobbyMusic.play();
         });
+        gameMusic.pause();
         gameMusic.addEventListener("ended", function() {
           gameMusic.play();
         });
