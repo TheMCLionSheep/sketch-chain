@@ -544,6 +544,7 @@
         can.stroke();
       }
       function drawLines(can, drawing) {
+        clearCanvas(can);
         for(var i = 0; i < drawing.lineList.length; i++) {
           var line = drawing.lineList[i];
           drawLine(can, line.startX, line.startY, line.endX, line.endY, line.radius, line.color);
