@@ -81,7 +81,7 @@ var Game = function(playerList) {
           tempSocket.emit("showPrompt",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1]);
         }
         if(phaseName == "guess") {
-          tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], false);
+          tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
         }
         if(phaseName == "review") {
           tempSocket.emit("showResult",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks);
@@ -115,15 +115,18 @@ var Game = function(playerList) {
     for(var i in game.players) {
       var tempSocket = SOCKET_LIST[i];
       if(tempSocket != null) {
-        tempSocket.emit("joinGame",false,i);
+        tempSocket.emit("joinGame",false,i,false);
         tempSocket.emit("restartGame");
       }
       if(game.host == i) {
+        tempSocket.emit("displayHost","none");
+        tempSocket.emit("displayHost","normal");
         Player.updateLobby("stopHost",game.players[i]);
       }
       Player.updateLobby("blue",game.players[i]);
     }
-    curGame = new Game([Player.list]);
+    lobbyDrawing = new Drawing();
+    curGame = new Game([]);
   }
   return game;
 }
@@ -166,32 +169,54 @@ var Drawing = function() {
   return drawing;
 }
 
-var Team = function(playerList, id) {
+var Team = function(id) {
   var team = {
-    players: playerList,
+    players: {},
     id: id,
     curChain: 0,
     finished: false
   }
+  team.addPlayer = function(player) {
+    team.players[player.id] = player;
+  }
   return team;
 }
 Team.fillTeams = function(game) {
-  for(var i in game.players) {
-    var players = {};
-    players[i] = game.players[i];
-    var newTeam = new Team(players, game.teams.length);
-    game.players[i].teamID = game.teams.length;
+  var teamAmount;
+  if(size(game.players) <= 9) {
+    teamAmount = size(game.players);
+  }
+  else if(size(game.players) <= 15) {
+    teamAmount = 5;
+  }
+  else if(size(game.players) <= 21) {
+    teamAmount = 7;
+  }
+  else {
+    teamAmount = 9;
+  }
+  var curTeamID = 0;
+
+  //Create teams
+  console.log(teamAmount);
+  for(var i = 0; i < teamAmount; i++) {
+    var newTeam = new Team(i);
+    console.log(newTeam);
     game.teams.push(newTeam);
   }
-  // var players = Player.list;
-  // var newTeam = new Team(players, game.teams.length);
-  // for(var i in Player.list) {
-  //   Player.list[i].teamID = game.teams.length;
-  // }
-  // game.teams.push(newTeam);
+
+
+  for(var pl in game.players) {
+    game.teams[curTeamID].addPlayer(game.players[pl]);
+    game.players[pl].teamID = curTeamID;
+    curTeamID++;
+    if(curTeamID >= teamAmount) {
+      curTeamID -= teamAmount;
+    }
+  }
 }
 
-var Player = function(id, name) {
+var Player = function(id, name, color) {
   var self = {
     lastX:250,
     lastY:250,
@@ -199,7 +224,8 @@ var Player = function(id, name) {
     painting: false,
     teamID: 0,
     name: name,
-    online: true
+    online: true,
+    lobbyColor: color
   }
   self.updatePosition = function(x, y) {
     self.lastX = x;
@@ -214,14 +240,16 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     var player = Player.list[socket.id];
   }
   else {
-    var player = Player(socket.id, name);
+    var player = Player(socket.id, name, HSLToRGB(Math.floor(Math.random()*360) ,100, 50));
   }
 
-  socket.emit("joinGame",(curGame.host != -1),socket.id);
+  socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"));
+  socket.emit("showDrawing", lobbyDrawing, "lobby");
 
   if(returningPlayer) {
     player.online = true;
     Player.loadLobby(socket, true);
+    socket.emit("displayHost","host");
     if(curGame.teams[player.teamID].finished) {
       socket.emit("gamePhase", "waiting");
       Player.updateLobby("green", player);
@@ -236,13 +264,13 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       }
       else if(curGame.gamePhase == "draw") {
         socket.emit("gamePhase", "draw");
-        socket.emit("showDrawing", curLink, true);
+        socket.emit("showDrawing", curLink, "main");
         socket.emit("showPrompt",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1]);
       }
       else if(curGame.gamePhase == "guess") {
         socket.emit("gamePhase", "guess");
         socket.emit("changeText",curLink.text, false);
-        socket.emit("showDrawing",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1], false);
+        socket.emit("showDrawing",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1], "guess");
       }
       else if(curGame.gamePhase == "review") {
         socket.emit("gamePhase", "review");
@@ -279,8 +307,28 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     }
   })
 
-  socket.on("linePress", function(event) {
-    if(curGame.gamePhase == "draw") {
+  socket.on("forceSubmit", function() {
+    if(player.id == curGame.host && curGame.gamePhase != "notStarted") {
+      console.log("Host forced submittions");
+      for(var i = 0; i < curGame.teams.length; i++) {
+        console.log(curGame.chains[curGame.teams[i].curChain].chainLinks[curGame.roundNumber].text);
+        if(curGame.roundNumber % 2 == 0 && curGame.chains[curGame.teams[i].curChain].chainLinks[curGame.roundNumber].text == "") {
+          curGame.chains[curGame.teams[i].curChain].chainLinks[curGame.roundNumber].updateText("Unanswered Prompt");
+        }
+        //Set waiting for team
+        for(var pl in curGame.teams[i].players) {
+          var tempSoc = SOCKET_LIST[pl];
+          tempSoc.emit("gamePhase","waiting");
+          Player.updateLobby("green",curGame.players[pl]);
+        }
+        curGame.teams[i].finished = true;
+      }
+      curGame.checkFinished();
+    }
+  })
+
+  socket.on("linePress", function(event, lobby) {
+    if(curGame.gamePhase == "draw" || lobby) {
       if(event.state == true) {
         player.painting = true;
         player.lastX = event.x;
@@ -291,14 +339,29 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       }
 
       if(player.painting) {
-        var chainID = curGame.teams[player.teamID].curChain;
-        var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber].lineList);
+        if(lobby) {
+          var line = new Line(player.lastX, player.lastY, event.x, event.y, 10, player.lobbyColor, lobbyDrawing.lineList);
+        }
+        else {
+          var chainID = curGame.teams[player.teamID].curChain;
+          var line = new Line(player.lastX, player.lastY, event.x, event.y, event.size, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber].lineList);
+        }
         player.updatePosition(event.x,event.y);
 
-        //Adds line for all sockets in team
-        for(var i in curGame.teams[player.teamID].players) {
-          var tempSoc = SOCKET_LIST[i];
-          tempSoc.emit("createLine",line);
+        if(lobby) {
+          for(var pl in Player.list) {
+            var tempSoc = SOCKET_LIST[pl];
+            if(tempSoc != null) {
+              tempSoc.emit("createLine",line,lobby);
+            }
+          }
+        }
+        else {
+          //Adds line for all sockets in team
+          for(var i in curGame.teams[player.teamID].players) {
+            var tempSoc = SOCKET_LIST[i];
+            tempSoc.emit("createLine",line,lobby);
+          }
         }
       }
     }
@@ -378,6 +441,9 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     if(size(Player.list) >= 3 && curGame.host == socket.id) {
       curGame.startGame();
     }
+    else {
+      socket.emit("startError","There must be at least 3 players!");
+    }
   });
 }
 Player.loadLobby = function(socket, showSelf) {
@@ -432,15 +498,15 @@ Player.onDisconnect = function(id) {
     if(curGame.gamePhase == "notStarted") {
       Player.updateLobby("remove", Player.list[id]);
       delete Player.list[id];
-      // if(curGame.host == id) {
-      //   curGame.host = -1;
-      //   for(var pl in Player.list) {
-      //     var tempSocket = SOCKET_LIST[pl];
-      //     if(tempSocket != null) {
-      //       tempSocket.emit("displayHost","normal");
-      //     }
-      //   }
-      // }
+      if(curGame.host == id) {
+        curGame.host = -1;
+        for(var pl in Player.list) {
+          var tempSocket = SOCKET_LIST[pl];
+          if(tempSocket != null) {
+            tempSocket.emit("displayHost","normal");
+          }
+        }
+      }
     }
     else {
       Player.updateLobby("gray", Player.list[id]);
@@ -547,6 +613,40 @@ function size(obj) {
   }
   return size;
 }
+
+function HSLToRGB(h,s,l) {
+  // Must be fractions of 1
+  s /= 100;
+  l /= 100;
+
+  let c = (1 - Math.abs(2 * l - 1)) * s,
+      x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+      m = l - c/2,
+      r = 0,
+      g = 0,
+      b = 0;
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+  r = Math.round((r + m) * 255);
+  g = Math.round((g + m) * 255);
+  b = Math.round((b + m) * 255);
+
+  return "rgb(" + r + "," + g + "," + b + ")";
+}
+
+var lobbyDrawing = new Drawing();
 
 // setInterval(function() {
 //

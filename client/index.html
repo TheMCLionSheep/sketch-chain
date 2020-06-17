@@ -44,15 +44,27 @@
           <p class="error-text" id="error-name"></p>
         </div>
         <button id="join-button" onclick="joinGame()">Join Game!</button>
+        <div class="container" id="credits">
+          <h1>Credits</h1>
+          <p>Created by Gabe</p>
+          <p>Thanks to Rachel, Matt, Aidan, Tyler and Logan for testing!</p>
+          <p>Music by Eric Matyas www.soundimage.org</p>
+          <p class="last">Sound Effects from Eric Matyas, Kenney.nl, zapsplat.com</p>
+        </div>
       </section>
 
       <section id="waiting-phase">
-        <div class="container" id="waiting__info">
-          <p>Waiting for host to start...</p>
+        <div class="container">
+          <p id="waiting__info">Waiting for host to start...</p>
+          <p class="error-text" id="error-list"></p>
         </div>
         <div class="container" id="player-list">
           <h1>Players:</h1>
         </div>
+        <div class="container canvas-container">
+          <canvas id="lobby-canvas" width="500" height="500"></canvas>
+        </div>
+        <button id="force-btn" class="toggle-btn" onclick="showPopup('force')">Force Submit</button>
       </section>
 
       <section id="pre-game">
@@ -125,8 +137,10 @@
       var signInSection = document.querySelector("#sign-in");
       var hostBtn = document.querySelector("#host-btn");
       var quitHostBtn = document.querySelector("#stop-host-btn");
+      var forceBtn = document.querySelector("#force-btn");
       var nameInput = document.querySelector("#name-input");
       var errorName = document.querySelector("#error-name");
+      var errorList = document.querySelector("#error-list");
       var joinBtn = document.querySelector("#join-button");
       var preGameSection = document.querySelector("#pre-game");
       var playerList = document.querySelector("#player-list");
@@ -134,6 +148,9 @@
       var ctx = canvas.getContext("2d");
       var guessCanvas = document.querySelector("#guess-canvas");
       var guessCtx = guessCanvas.getContext("2d");
+      var lobbyCanvas = document.querySelector("#lobby-canvas");
+      var lobbyCtx = lobbyCanvas.getContext("2d");
+      var waitingInfo = document.querySelector("#waiting__info");
       var waitSection = document.querySelector("#waiting-phase");
       var promptSection = document.querySelector("#prompt-phase");
       var promptArea = document.querySelector("#prompt-area");
@@ -151,6 +168,18 @@
       var startBtn = document.querySelector("#start-btn");
 
       var curButton = joinBtn;
+
+      //Load audio
+      var chime = new Audio();
+      chime.src = "/client/audio/chime.mp3";
+      var errorSound = new Audio();
+      errorSound.src = "/client/audio/error.ogg";
+      var alertSound = new Audio();
+      alertSound.src = "/client/audio/UI_Quirky35.mp3";
+      var lobbyMusic = new Audio();
+      lobbyMusic.src = "/client/audio/Pixel-Puppies.mp3";
+      var gameMusic = new Audio();
+      gameMusic.src = "/client/audio/Arcade-Stories_Looping.mp3";
 
       var lastConnection = new Date().getTime();
 
@@ -173,9 +202,24 @@
       socket.on("signInReject", function(reason) {
         errorName.innerHTML = reason;
         errorName.classList.add("active");
+        errorSound.play();
       });
 
-      socket.on("joinGame", function(host, id) {
+      socket.on("startError", function(reason) {
+        errorList.innerHTML = reason;
+        errorList.classList.add("active");
+        errorSound.play();
+      })
+
+      socket.on("joinGame", function(host, id, started) {
+        lobbyMusic.play();
+        lobbyMusic.addEventListener("ended", function() {
+          lobbyMusic.play();
+        });
+        gameMusic.addEventListener("ended", function() {
+          gameMusic.play();
+        });
+
         signInSection.classList.remove("active");
         reviewSection.classList.remove("active");
         waitSection.classList.add("active");
@@ -185,6 +229,9 @@
         }
         else {
           hostBtn.classList.add("active");
+        }
+        if(started) {
+          waitingInfo.innerHTML = "Game in progress...";
         }
         curButton = null;
       });
@@ -209,10 +256,12 @@
             hostBtn.classList.remove("active");
             quitHostBtn.classList.remove("active");
             startBtn.classList.remove("active");
+            forceBtn.classList.remove("active");
             break;
           case "host":
             quitHostBtn.classList.add("active");
             startBtn.classList.add("active");
+            forceBtn.classList.add("active");
             break;
           case "normal":
             hostBtn.classList.add("active");
@@ -223,21 +272,27 @@
       });
 
       socket.on("restartGame", function() {
+        localStorage.setItem("playerID", "");
         promptArea.value = "";
         guessArea.value = "";
         clearCanvas(ctx);
+        clearCanvas(lobbyCtx);
         clearCanvas(guessCtx);
+        waitingInfo.innerHTML = "Waiting for host to start...";
       })
 
-      socket.on("createLine",function(data){
-        drawLine(ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color);
+      socket.on("createLine",function(data, lobby){
+        drawLine(lobby ? lobbyCtx : ctx, data.startX, data.startY, data.endX, data.endY, data.radius, data.color);
       });
 
-      socket.on("showDrawing", function(drawing, isDrawCanvas){
-        if(isDrawCanvas) {
+      socket.on("showDrawing", function(drawing, canvasType){
+        if(canvasType == "main") {
           drawLines(ctx, drawing);
         }
-        else {
+        else if(canvasType == "lobby") {
+          drawLines(lobbyCtx, drawing);
+        }
+        else if(canvasType == "guess") {
           drawLines(guessCtx, drawing);
         }
       });
@@ -264,23 +319,35 @@
         reviewSection.classList.remove("active");
         switch(phase) {
           case "prompt":
+            lobbyMusic.pause();
+            gameMusic.play();
+            waitingInfo.innerHTML = "Waiting for teams to finish...";
+            errorList.classList.remove("active");
             promptSection.classList.add("active");
             curButton = promptBtn;
             break;
           case "waiting":
+            lobbyMusic.play();
+            gameMusic.pause();
             waitSection.classList.add("active");
             curButton = null;
             break;
           case "draw":
+            lobbyMusic.pause();
+            gameMusic.play();
             clearCanvas(ctx);
             drawSection.classList.add("active");
             curButton = drawBtn;
             break;
           case "guess":
+            lobbyMusic.pause();
+            gameMusic.play();
             guessArea.value = "";
             guessSection.classList.add("active");
             curButton = guessBtn;
           case "review":
+            lobbyMusic.pause();
+            gameMusic.play();
             reviewSection.classList.add("active");
           default:
             break;
@@ -331,6 +398,7 @@
       }
 
       function addToLobby(type, name) {
+        chime.play();
         var p;
         if(type == "add") {
           p = document.createElement("p");
@@ -390,14 +458,14 @@
           color: color,
           size: size
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
-      function endDrawing() {
+      function endDrawing(e) {
         painting = false;
         eventInfo = {
           state: false
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
       function draw(e) {
         var canvasPercent = 500/this.offsetWidth;
@@ -417,7 +485,7 @@
           color: color,
           size: size
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
       function startDrawingTouch(e) {
         e.preventDefault();
@@ -433,14 +501,14 @@
           color: color,
           size: size
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
-      function endDrawingTouch() {
+      function endDrawingTouch(e) {
         painting = false;
         eventInfo = {
           state: false
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
       function drawTouch(e) {
         e.preventDefault();
@@ -462,7 +530,7 @@
           color: color,
           size: size
         };
-        socket.emit("linePress", eventInfo);
+        socket.emit("linePress", eventInfo, (this.id == "lobby-canvas"));
       }
 
       function drawLine(can, startX, startY, endX, endY, radius, color) {
@@ -491,6 +559,12 @@
       canvas.addEventListener("touchstart", startDrawingTouch);
       canvas.addEventListener("touchend", endDrawingTouch);
       canvas.addEventListener("touchmove", drawTouch);
+      lobbyCanvas.addEventListener("mousedown", startDrawing);
+      lobbyCanvas.addEventListener("mouseup", endDrawing);
+      lobbyCanvas.addEventListener("mousemove", draw);
+      lobbyCanvas.addEventListener("touchstart", startDrawingTouch);
+      lobbyCanvas.addEventListener("touchend", endDrawingTouch);
+      lobbyCanvas.addEventListener("touchmove", drawTouch);
 
       var colorSlider = document.querySelector("#color-slider");
       var darknessSlider = document.querySelector("#darkness-slider");
@@ -560,6 +634,7 @@
       }
 
       function showPopup(type) {
+        alertSound.play();
         scrim.classList.add("active");
         popup.classList.add("active");
         popup.setAttribute("onclick","confirmSubmit('" + type + "');");
@@ -580,10 +655,16 @@
           case "guess":
             submitGuess();
             break;
+          case "force":
+            forceSubmit();
           default:
             break;
         }
         hidePopup();
+      }
+
+      function forceSubmit() {
+        socket.emit("forceSubmit");
       }
 
       function submitPhrase() {
@@ -683,7 +764,6 @@
 
       function startGame() {
         socket.emit("startGame");
-        startBtn.setAttribute("class","active");
       }
     </script>
   </body>

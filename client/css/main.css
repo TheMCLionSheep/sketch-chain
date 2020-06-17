@@ -47,8 +47,9 @@ button:hover {
   display: block;
 }
 
-#waiting__info p{
+#waiting__info{
   padding: 20px;
+  margin: 0;
 }
 #player-list {
   display: flex;
@@ -266,6 +267,7 @@ canvas {
 .error-text {
   display: none;
   padding: 5px;
+  margin: 0;
   color: red;
   font-size: 15px;
 }
@@ -335,6 +337,18 @@ canvas {
   height: auto;
 }
 
+#credits h1 {
+  margin: 0;
+  padding: 20px 0 10px;
+}
+#credits p {
+  margin: 0;
+  padding: 5px 10px;
+}
+#credits p.last {
+  padding-bottom: 15px;
+}
+
 #sign-in {
   display: none;
 }
@@ -343,12 +357,14 @@ canvas {
 }
 #pre-game {
   display: none;
+  padding: 0;
 }
 #pre-game.active {
   display: block;
 }
 #waiting-phase {
   display: none;
+  padding-bottom: 0;
 }
 #waiting-phase.active {
   display: block;
@@ -391,7 +407,7 @@ canvas {
     font-size: 5vw;
   }
 
-  #waiting__info p{
+  #waiting__info{
     padding: 3.33vw;
   }
   #player-list h1{
@@ -525,6 +541,18 @@ canvas {
   }
   .popup p {
     font-size: 3.33vw;
+  }
+
+  #credits h1 {
+    margin: 0;
+    padding: 3.33vw 0 1.67vw;
+  }
+  #credits p {
+    margin: 0;
+    padding: 0.83vw 1.67vw;
+  }
+  #credits p.last {
+    padding-bottom: 2.5vw;
   }
 
   #waiting-text {
