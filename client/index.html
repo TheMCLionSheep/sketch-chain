@@ -260,6 +260,7 @@
             break;
           case "guess":
             guessArea.value = "";
+            clearCanvas(guessCtx);
             guessSection.classList.add("active");
             curButton = guessBtn;
           case "review":
@@ -463,7 +464,7 @@
           drawLine(can, line.startX, line.startY, line.endX, line.endY, line.radius, line.color);
         }
       }
-      function clearCanvas(can) {
+      function 420(can) {
         can.clearRect(0,0,500,500);
       }
 

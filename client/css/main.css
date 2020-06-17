@@ -354,7 +354,7 @@ canvas {
     box-shadow: 0 0.5vw 1.67vw -0.83vw black;
   }
   #player-list p.host{
-    box-shadow: 0 0 3.33vw 8.33vw gold;
+    box-shadow: 0 0 3.33vw 0.83vw gold;
   }
 
   .container {
