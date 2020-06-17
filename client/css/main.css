@@ -35,6 +35,7 @@ button {
   text-transform: uppercase;
   font-family: "Helvetica";
   font-weight: bold;
+  cursor: pointer;
 }
 button:hover {
   background-position: right center;
@@ -164,9 +165,61 @@ canvas {
   background: white url("/client/images/hue-gradient.jpg");
   background-size: cover;
 }
+#darkness-slider {
+  background: rgb(0,0,0);
+  background: linear-gradient(90deg, rgb(0,0,0) 0%, rgb(255,0,0) 50%, rgb(255,255,255) 100%);
+}
 
-#size-slider {
+.size-buttons {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  overflow: hidden;
+}
+.size-buttons__spacer {
+  flex: 1;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,0);
+  border-radius: 0;
+  box-shadow: 0 0;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
+}
+.size-buttons span{
+  position: relative;
+  padding: 0;
+  margin: 0;
   background: black;
+  opacity: 1;
+  border-radius: 50%;
+}
+#size-5 span{
+  width: 5px;
+  height: 5px;
+}
+#size-10 span{
+  width: 10px;
+  height: 10px;
+}
+#size-15 span{
+  width: 15px;
+  height: 15px;
+}
+#size-20 span{
+  width: 20px;
+  height: 20px;
+}
+#size-25 span{
+  width: 25px;
+  height: 25px;
 }
 
 .slider::-webkit-slider-thumb {
@@ -410,6 +463,31 @@ canvas {
     height: 4.17vw;
     border: solid white 0.5vw;
     border-radius: 2.5vw;
+  }
+
+  .size-buttons__spacer {
+    height: 8.33vw;
+    border-width: 0.83vw;
+  }
+  #size-5 span{
+    width: 0.83vw;
+    height: 0.83vw;
+  }
+  #size-10 span{
+    width: 1.67vw;
+    height: 1.67vw;
+  }
+  #size-15 span{
+    width: 2.5vw;
+    height: 2.5vw;
+  }
+  #size-20 span{
+    width: 3.33vw;
+    height: 3.33vw;
+  }
+  #size-25 span{
+    width: 4.17vw;
+    height: 4.17vw;
   }
 
   .prompt-input {

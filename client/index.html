@@ -70,7 +70,7 @@
         <button id="prompt-button" onclick="showPopup('phrase');">Submit Phrase</button>
       </section>
 
-      <section id="draw-phase">
+      <section id="draw-phase" class="active">
         <div class="container">
           <p id="draw-prompt-text">Draw: </p>
         </div>
@@ -78,10 +78,27 @@
           <canvas id="drawing-canvas" width="500" height="500"></canvas>
         </div>
         <div class="slidecontainer">
-          <input type="range" min="1" max="360" value="1" class="slider" id="color-slider">
+          <input type="range" min="0" max="359" value="0" class="slider" id="color-slider">
         </div>
         <div class="slidecontainer">
-          <input type="range" min="1" max="20" value="10" class="slider" id="size-slider">
+          <input type="range" min="0" max="100" value="50" class="slider" id="darkness-slider">
+        </div>
+        <div class="size-buttons container">
+          <button id="size-5" class="size-buttons__spacer" onclick="changeSize(5)">
+            <span></span>
+          </button>
+          <button id="size-10" class="size-buttons__spacer active" style="border-color:rgb(255,0,0)" onclick="changeSize(10)">
+            <span></span>
+          </button>
+          <button id="size-15" class="size-buttons__spacer" onclick="changeSize(15)">
+            <span></span>
+          </button>
+          <button id="size-20" class="size-buttons__spacer" onclick="changeSize(20)">
+            <span></span>
+          </button>
+          <button id="size-25" class="size-buttons__spacer" onclick="changeSize(25)">
+            <span></span>
+          </button>
         </div>
         <!-- <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button> -->
         <button id="draw-button" onclick="showPopup('drawing');">Submit Drawing</button>
@@ -209,6 +226,7 @@
         promptArea.value = "";
         guessArea.value = "";
         clearCanvas(ctx);
+        clearCanvas(guessCtx);
       })
 
       socket.on("createLine",function(data){
@@ -260,7 +278,6 @@
             break;
           case "guess":
             guessArea.value = "";
-            clearCanvas(guessCtx);
             guessSection.classList.add("active");
             curButton = guessBtn;
           case "review":
@@ -464,7 +481,7 @@
           drawLine(can, line.startX, line.startY, line.endX, line.endY, line.radius, line.color);
         }
       }
-      function 420(can) {
+      function clearCanvas(can) {
         can.clearRect(0,0,500,500);
       }
 
@@ -476,24 +493,66 @@
       canvas.addEventListener("touchmove", drawTouch);
 
       var colorSlider = document.querySelector("#color-slider");
-      var sizeSlider = document.querySelector("#size-slider");
+      var darknessSlider = document.querySelector("#darkness-slider");
+      var lightness = 50;
+      var hue = 0;
       colorSlider.oninput = function() {
-        var red = (Math.abs(this.value - 180)*(64/15)-257);
-        red = red < 0 ? 0 : red;
-        red = red > 255 ? 255 : red;
+        hue = this.value;
 
-        var green = (((Math.abs(this.value - 120)*-1)+120)*(64/15));
-        green = green < 0 ? 0 : green;
-        green = green > 255 ? 255 : green;
+        color = HSLToRGB(hue,100,lightness);
 
-        var blue = (((Math.abs(this.value - 240)*-1)+120)*(64/15));
-        blue = blue < 0 ? 0 : blue;
-        blue = blue > 255 ? 255 : blue;
+        darknessSlider.style.background = "linear-gradient(90deg, rgb(0,0,0) 0%, " + HSLToRGB(hue,100,50) + " 50%, rgb(255,255,255) 100%)";
 
-        color = "RGB(" + red + "," + green + "," + blue + ")";
+        var newSizeBtn = document.querySelector("#size-" + size);
+        newSizeBtn.style.borderColor = color;
       }
-      sizeSlider.oninput = function() {
-        size = this.value;
+      darknessSlider.oninput = function() {
+        lightness = this.value;
+
+        color = HSLToRGB(hue,100,lightness);
+
+        var newSizeBtn = document.querySelector("#size-" + size);
+        newSizeBtn.style.borderColor = color;
+      }
+
+      function changeSize(newSize) {
+        var oldSizeBtn = document.querySelector("#size-" + size);
+        oldSizeBtn.style.borderColor = "white";
+        size = newSize;
+        var newSizeBtn = document.querySelector("#size-" + size);
+        newSizeBtn.style.borderColor = color;
+      }
+
+      function HSLToRGB(h,s,l) {
+        // Must be fractions of 1
+        s /= 100;
+        l /= 100;
+
+        let c = (1 - Math.abs(2 * l - 1)) * s,
+            x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+            m = l - c/2,
+            r = 0,
+            g = 0,
+            b = 0;
+
+        if (0 <= h && h < 60) {
+          r = c; g = x; b = 0;
+        } else if (60 <= h && h < 120) {
+          r = x; g = c; b = 0;
+        } else if (120 <= h && h < 180) {
+          r = 0; g = c; b = x;
+        } else if (180 <= h && h < 240) {
+          r = 0; g = x; b = c;
+        } else if (240 <= h && h < 300) {
+          r = x; g = 0; b = c;
+        } else if (300 <= h && h < 360) {
+          r = c; g = 0; b = x;
+        }
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+
+        return "rgb(" + r + "," + g + "," + b + ")";
       }
 
       function writePrompt(e) {

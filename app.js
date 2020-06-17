@@ -232,11 +232,9 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       var curLink = curGame.chains[chainID].chainLinks[curGame.roundNumber];
       if(curGame.gamePhase == "prompt") {
         socket.emit("gamePhase", "prompt");
-        console.log("text: " + curLink.text);
         socket.emit("changeText", curLink.text, true);
       }
       else if(curGame.gamePhase == "draw") {
-        console.log("chain: " + curLink.lineList);
         socket.emit("gamePhase", "draw");
         socket.emit("showDrawing", curLink, true);
         socket.emit("showPrompt",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1]);
@@ -310,7 +308,6 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     if(curGame.gamePhase == "prompt" || curGame.gamePhase == "guess") {
       var chainID = curGame.teams[player.teamID].curChain;
       curGame.chains[chainID].chainLinks[curGame.roundNumber].updateText(text);
-      console.log("chain: " + chainID);
 
       //Adds text for all on team
       for(var i in curGame.teams[player.teamID].players) {
