@@ -781,8 +781,12 @@
         }
         else {
           muteButton.style.backgroundColor = "lime";
-          lobbyMusic.play();
-          gameMusic.play();
+          if(gameMusic.paused) {
+            lobbyMusic.play();
+          }
+          else {
+            gameMusic.play();
+          }
         }
       }
 
