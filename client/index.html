@@ -361,18 +361,21 @@
         drawPrompt.innerHTML = "Draw: " + prompt.text;
       });
 
-      socket.on("showResult", function(chainLinks){
+      socket.on("showResult", function(chainLinks, isHost){
+        clearReview();
         createText(reviewSection,"Original Prompt",chainLinks[0].text);
         if(chainLinks.length % 2 == 1) {
           createText(reviewSection,"Final Guess",chainLinks[chainLinks.length - 1].text);
         }
-        createButton("View Chains","viewChains(0,0);");
+        if(isHost) {
+          createButton("View Chains","viewChains(0,0);");
+        }
       });
 
-      socket.on("reviewLink", function(packet){
+      socket.on("reviewLink", function(packet, isHost){
         if(packet.nextLink == 1) {
           clearReview();
-          createArrowButtons(packet.nextChain, packet.nextLink);
+          createArrowButtons(packet.nextChain, packet.nextLink, isHost);
         }
         if(packet.type == "text") {
           createText(document.querySelector("#chain-showcase"),(packet.nextLink == 1 ? "Original Prompt" : "Guess"),packet.link.text);
@@ -380,7 +383,9 @@
         else if(packet.type == "drawing") {
           createDrawing(packet.link);
         }
-        updateArrowButtons(packet.nextChain, packet.nextLink);
+        if(isHost) {
+          updateArrowButtons(packet.nextChain, packet.nextLink);
+        }
       });
 
       function newPlayer() {
@@ -746,12 +751,14 @@
         }
       }
 
-      function createArrowButtons(chainID, linkID) {
+      function createArrowButtons(chainID, linkID, makeButton) {
         var div = document.createElement("div");
         div.setAttribute("id","chain-showcase");
         reviewSection.appendChild(div);
 
-        createButton("Next", "viewChains("+chainID+","+linkID+")", "next-button");
+        if(makeButton) {
+          createButton("Next", "viewChains("+chainID+","+linkID+")", "next-button");
+        }
       }
 
       function updateArrowButtons(chainID, linkID) {
