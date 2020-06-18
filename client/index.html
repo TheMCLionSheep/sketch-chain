@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/client/css/main.css">
   </head>
   <body>
+    <button id="mute-button" onclick="muteMusic()"></button>
     <div id="scrim" class="scrim" onclick="hidePopup()"></div>
     <div id="rejoin-scrim" class="scrim"></div>
     <article id="content">
@@ -131,6 +132,7 @@
       <section id="review-phase"></section>
     </article>
     <script>
+      var muteButton = document.querySelector("#mute-button");
       var disconnectSection = document.querySelector("#disconnect");
       var rejoinSection = document.querySelector("#rejoin");
       var rejoinScrim = document.querySelector("#rejoin-scrim");
@@ -763,6 +765,17 @@
           curButton.click();
         }
       });
+
+      function muteMusic() {
+        lobbyMusic.muted = lobbyMusic.muted ? false : true;
+        gameMusic.muted = gameMusic.muted ? false : true;
+        if(gameMusic.muted) {
+          muteButton.style.backgroundColor = "red";
+        }
+        else {
+          muteButton.style.backgroundColor = "lime";
+        }
+      }
 
       function startGame() {
         socket.emit("startGame");

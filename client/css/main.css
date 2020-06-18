@@ -337,6 +337,20 @@ canvas {
   height: auto;
 }
 
+#mute-button {
+  z-index: 3;
+  position: fixed;
+  width: 80px;
+  height: 80px;
+  top: 30px;
+  right: 30px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: lime url("/client/images/mute.png") center center no-repeat;
+  background-size: 60px;
+}
+
 #credits h1 {
   margin: 0;
   padding: 20px 0 10px;
@@ -554,6 +568,15 @@ canvas {
   #credits p.last {
     padding-bottom: 2.5vw;
   }
+
+  #mute-button {
+    width: 13.33vw;
+    height: 13.33vw;
+    top: 5vw;
+    right: 5vw;
+    background-size: 10vw;
+  }
+
 
   #waiting-text {
     font-size: 5vw;
