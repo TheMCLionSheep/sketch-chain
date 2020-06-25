@@ -202,11 +202,11 @@ var Team = function(id) {
 }
 Team.fillTeams = function(game) {
   var teamAmount;
-  if(size(game.players) <= 9) {
+  if(size(game.players) <= 5) {
     teamAmount = size(game.players);
   }
   else if(size(game.players) <= 15) {
-    teamAmount = 5;
+    teamAmount = 3;
   }
   else if(size(game.players) <= 21) {
     teamAmount = 7;
