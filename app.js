@@ -209,11 +209,11 @@ var Team = function(id) {
 }
 Team.fillTeams = function(game) {
   var teamAmount;
-  if(size(game.players) <= 9) {
+  if(size(game.players) <= 5) {
     teamAmount = size(game.players);
   }
   else if(size(game.players) <= 15) {
-    teamAmount = 5;
+    teamAmount = 3;
   }
   else if(size(game.players) <= 21) {
     teamAmount = 7;
@@ -274,7 +274,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     Player.loadLobby(socket, true);
     socket.emit("displayHost","host");
     if(size(curGame.players) >= 10 || true) {
-      for(tm in curGame.teams[curGame.players[pl].teamID].players) {
+      for(tm in curGame.teams[player.teamID].players) {
         socket.emit("addTeamMember", "add", curGame.players[tm].name);
       }
     }
