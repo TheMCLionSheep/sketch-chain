@@ -48,7 +48,7 @@ var Game = function(playerList) {
       Team.fillTeams(this);
       Chain.createChains(this);
 
-      if(size(game.players) >= 10 || true) {
+      if(size(game.players) >= 6 || true) {
         for(pl in game.players) {
           var tempSocket = SOCKET_LIST[pl];
           if(tempSocket != null) {
@@ -90,13 +90,13 @@ var Game = function(playerList) {
         tempSocket.emit("gamePhase",phaseName);
         if(phaseName == "draw") {
           tempSocket.emit("showPrompt",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1]);
-          if(size(game.players) >= 10 || true) {
+          if(size(game.players) >= 6 || true) {
             tempSocket.emit("teamListActive", true);
           }
         }
         if(phaseName == "guess") {
           tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
-          if(size(game.players) >= 10 || true) {
+          if(size(game.players) >= 6 || true) {
             tempSocket.emit("teamListActive", true);
           }
         }
