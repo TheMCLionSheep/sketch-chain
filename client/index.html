@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/client/css/main.css">
   </head>
   <body>
-    <button id="mute-button" onclick="muteMusic()"></button>
+    <button id="mute-button" class="active" onclick="muteMusic()"></button>
     <div id="scrim" class="scrim" onclick="hidePopup()"></div>
     <div id="rejoin-scrim" class="scrim"></div>
     <article id="content">
@@ -54,12 +54,18 @@
         </div>
       </section>
 
+      <section id="team-section">
+        <div class="container list" id="team-list">
+          <h1>Team:</h1>
+        </div>
+      </section>
+
       <section id="waiting-phase">
         <div class="container">
           <p id="waiting__info">Waiting for host to start...</p>
           <p class="error-text" id="error-list"></p>
         </div>
-        <div class="container" id="player-list">
+        <div class="container list" id="player-list">
           <h1>Players:</h1>
         </div>
         <div class="container canvas-container">
@@ -112,6 +118,9 @@
           <button id="size-25" class="size-buttons__spacer" onclick="changeSize(25)">
             <span></span>
           </button>
+          <button class="size-buttons__spacer fill-bucket" onclick="fillCanvas()">
+            <img src="/client/images/fill.png" alt="Fill">
+          </button>
         </div>
         <!-- <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button> -->
         <button id="draw-button" onclick="showPopup('drawing');">Submit Drawing</button>
@@ -146,6 +155,8 @@
       var joinBtn = document.querySelector("#join-button");
       var preGameSection = document.querySelector("#pre-game");
       var playerList = document.querySelector("#player-list");
+      var teamList = document.querySelector("#team-list");
+      var teamSection = document.querySelector("#team-section");
       var canvas = document.querySelector("#drawing-canvas");
       var ctx = canvas.getContext("2d");
       var guessCanvas = document.querySelector("#guess-canvas");
@@ -174,14 +185,19 @@
       //Load audio
       var chime = new Audio();
       chime.src = "/client/audio/chime.mp3";
+      chime.volume = 0.2;
       var errorSound = new Audio();
       errorSound.src = "/client/audio/error.ogg";
+      errorSound.volume = 0.3;
       var alertSound = new Audio();
       alertSound.src = "/client/audio/alert.mp3";
+      alertSound.volume = 0.2;
       var lobbyMusic = new Audio();
       lobbyMusic.src = "/client/audio/Pixel-Puppies.mp3";
+      lobbyMusic.volume = 0.3;
       var gameMusic = new Audio();
       gameMusic.src = "/client/audio/Arcade-Stories_Looping.mp3";
+      gameMusic.volume = 0.3;
 
       var lastConnection = new Date().getTime();
 
@@ -238,6 +254,20 @@
         }
         curButton = null;
       });
+
+      socket.on("addTeamMember", function(name) {
+        addTeamName(name);
+      });
+
+      socket.on("teamListActive", function(isActive) {
+        console.log(isActive);
+        if(isActive) {
+          teamSection.classList.add("active");
+        }
+        else {
+          teamSection.classList.remove("active");
+        }
+      })
 
       // socket.on("preGameLobby", function(packet) {
       //   for(var i = 0; i < packet.length; i++) {
@@ -320,6 +350,8 @@
         drawSection.classList.remove("active");
         guessSection.classList.remove("active");
         reviewSection.classList.remove("active");
+        muteButton.classList.remove("active");
+        teamSection.classList.remove("active");
         switch(phase) {
           case "prompt":
             lobbyMusic.pause();
@@ -333,6 +365,7 @@
             lobbyMusic.play();
             gameMusic.pause();
             waitSection.classList.add("active");
+            muteButton.classList.add("active");
             curButton = null;
             break;
           case "draw":
@@ -403,6 +436,14 @@
 
       function joinGame() {
         socket.emit("signInRequest",nameInput.value);
+      }
+
+      function addTeamName(name) {
+        p = document.createElement("p");
+
+        p.innerHTML = name;
+
+        teamList.appendChild(p);
       }
 
       function addToLobby(type, name) {
@@ -604,6 +645,16 @@
         size = newSize;
         var newSizeBtn = document.querySelector("#size-" + size);
         newSizeBtn.style.borderColor = color;
+      }
+
+      function fillCanvas() {
+        eventInfo = {
+          x: 0,
+          y: 0,
+          color: color,
+          size: 1000
+        };
+        socket.emit("linePress", eventInfo, false);
       }
 
       function HSLToRGB(h,s,l) {

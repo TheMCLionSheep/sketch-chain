@@ -51,20 +51,20 @@ button:hover {
   padding: 20px;
   margin: 0;
 }
-#player-list {
+.list {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: center;
 }
-#player-list h1{
+.list h1{
   width: 100%;
   margin:0;
   padding-top: 20px;
   padding-bottom: 10px;
   font-size: 40px;
 }
-#player-list p{
+.list p{
   margin: 0 15px 10px;
   padding: 5px 10px;
   font-size: 30px;
@@ -76,22 +76,22 @@ button:hover {
   color: white;
   box-shadow: 0 3px 10px -5px black;
 }
-#player-list p.gray{
+.list p.gray{
   background: #232526;  /* fallback for old browsers */
   background: -webkit-linear-gradient(165deg, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(165deg, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-#player-list p.red{
+.list p.red{
   background: #f85032;  /* fallback for old browsers */
   background: -webkit-linear-gradient(345deg, #e73827, #f85032);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(345deg, #e73827, #f85032); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-#player-list p.green{
+.list p.green{
   background: #56ab2f;  /* fallback for old browsers */
   background: -webkit-linear-gradient(165deg, #a8e063, #56ab2f);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(165deg, #a8e063, #56ab2f); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-#player-list p.host{
+.list p.host{
   box-shadow: 0 0 20px 5px gold;
 }
 
@@ -222,6 +222,10 @@ canvas {
   width: 25px;
   height: 25px;
 }
+.fill-bucket img{
+  width: 25px;
+  height: 25px;
+}
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance:none;
@@ -338,6 +342,7 @@ canvas {
 }
 
 #mute-button {
+  display: none;
   z-index: 3;
   position: fixed;
   width: 80px;
@@ -349,6 +354,9 @@ canvas {
   border-radius: 50%;
   background: lime url("/client/images/mute.png") center center no-repeat;
   background-size: 60px;
+}
+#mute-button.active {
+  display: block;
 }
 
 #credits h1 {
@@ -374,6 +382,13 @@ canvas {
   padding: 0;
 }
 #pre-game.active {
+  display: block;
+}
+#team-section {
+  display: none;
+  padding-bottom: 0;
+}
+#team-section.active {
   display: block;
 }
 #waiting-phase {
@@ -424,19 +439,19 @@ canvas {
   #waiting__info{
     padding: 3.33vw;
   }
-  #player-list h1{
+  .list h1{
     padding-top: 3.33vw;
     padding-bottom: 1.66vw;
     font-size: 6.66vw;
   }
-  #player-list p{
+  .list p{
     margin: 0 2.5vw 1.67vw;
     padding: 0.83vw 1.67vw;
     font-size: 5vw;
     border-radius: 1.67vw;
     box-shadow: 0 0.5vw 1.67vw -0.83vw black;
   }
-  #player-list p.host{
+  .list p.host{
     box-shadow: 0 0 3.33vw 0.83vw gold;
   }
 
@@ -516,6 +531,10 @@ canvas {
     height: 3.33vw;
   }
   #size-25 span{
+    width: 4.17vw;
+    height: 4.17vw;
+  }
+  .fill-bucket img{
     width: 4.17vw;
     height: 4.17vw;
   }
