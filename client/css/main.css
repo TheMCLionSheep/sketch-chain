@@ -95,6 +95,18 @@ button:hover {
   box-shadow: 0 0 20px 5px gold;
 }
 
+#timer {
+  display: none;
+  margin: 0;
+  padding: 10px 0 20px;
+  width: 100%;
+  font-size: 35px;
+}
+
+#timer.active {
+  display: block;
+}
+
 .container {
   width: 530px;
   height: auto;

@@ -57,6 +57,7 @@
       <section id="team-section">
         <div class="container list" id="team-list">
           <h1>Team:</h1>
+          <h2 id="timer">0:15</h2>
         </div>
       </section>
 
@@ -157,6 +158,7 @@
       var playerList = document.querySelector("#player-list");
       var teamList = document.querySelector("#team-list");
       var teamSection = document.querySelector("#team-section");
+      var timer = document.querySelector("#timer");
       var canvas = document.querySelector("#drawing-canvas");
       var ctx = canvas.getContext("2d");
       var guessCanvas = document.querySelector("#guess-canvas");
@@ -181,6 +183,7 @@
       var startBtn = document.querySelector("#start-btn");
 
       var curButton = joinBtn;
+      var secLeft = -1;
 
       //Load audio
       var chime = new Audio();
@@ -255,19 +258,30 @@
         curButton = null;
       });
 
-      socket.on("addTeamMember", function(name) {
-        addTeamName(name);
+      socket.on("addTeamMember", function(type, name) {
+        addTeamName(type, name);
       });
 
       socket.on("teamListActive", function(isActive) {
-        console.log(isActive);
         if(isActive) {
           teamSection.classList.add("active");
         }
         else {
           teamSection.classList.remove("active");
         }
-      })
+      });
+
+      socket.on("startTimer", function(seconds) {
+        if(seconds == -1) {
+          timer.classList.remove("active");
+          secLeft = -1;
+        }
+        else {
+          timer.classList.add("active");
+          secLeft = seconds + 1;
+          updateTime();
+        }
+      });
 
       // socket.on("preGameLobby", function(packet) {
       //   for(var i = 0; i < packet.length; i++) {
@@ -311,6 +325,7 @@
         clearCanvas(ctx);
         clearCanvas(lobbyCtx);
         clearCanvas(guessCtx);
+        clearTeamMembers();
         waitingInfo.innerHTML = "Waiting for host to start...";
       })
 
@@ -438,12 +453,32 @@
         socket.emit("signInRequest",nameInput.value);
       }
 
-      function addTeamName(name) {
-        p = document.createElement("p");
+      function addTeamName(type, name) {
+        if(type == "add") {
+          p = document.createElement("p");
 
-        p.innerHTML = name;
+          p.innerHTML = name;
+          p.setAttribute("class","red");
+          p.setAttribute("id","team-list__" + name);
 
-        teamList.appendChild(p);
+          teamList.appendChild(p);
+        }
+        else {
+          p = document.querySelector("#team-list__" + name);
+          if (type == "red"){
+            p.setAttribute("class","red");
+          }
+          else if (type == "green"){
+            p.setAttribute("class","green");
+          }
+        }
+      }
+
+      function clearTeamMembers() {
+        var teamMembers = teamList.getElementsByTagName("p");
+        for(var i = 0; i < teamMembers.length; i++) {
+          teamList.removeChild(teamMembers[i]);
+        }
       }
 
       function addToLobby(type, name) {
@@ -838,6 +873,15 @@
           else {
             gameMusic.play();
           }
+        }
+      }
+
+      function updateTime() {
+        secLeft -= 1;
+        var secText = (secLeft > 9) ? secLeft : ("0" + secLeft);
+        timer.innerHTML = "0:" + secText;
+        if(secLeft >= 1) {
+          setTimeout(updateTime, 1000);
         }
       }
 
