@@ -192,6 +192,9 @@
       var chime = new Audio();
       chime.src = "/client/audio/chime.mp3";
       chime.volume = 0.2;
+      var drawChime = new Audio();
+      drawChime.src = "/client/audio/draw.mp3";
+      drawChime.volume = 0.3;
       var errorSound = new Audio();
       errorSound.src = "/client/audio/error.ogg";
       errorSound.volume = 0.3;
@@ -416,6 +419,10 @@
         }
       });
 
+      socket.on("errorSound", function() {
+        errorSound.play();
+      });
+
       socket.on("showPopup", function(type){
         showPopup(type);
       });
@@ -500,6 +507,7 @@
           else if (type == "draw"){
             p.classList.remove("draw");
             p.classList.add("draw");
+            drawChime.play();
           }
           else if (type == "noDraw"){
             p.classList.remove("draw");

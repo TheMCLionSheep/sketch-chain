@@ -613,6 +613,10 @@ canvas {
     background-size: 10vw;
   }
 
+  #timer {
+    padding: 1.67vw 0 3.33vw;
+    font-size: 5.83vw;
+  }
 
   #waiting-text {
     font-size: 5vw;

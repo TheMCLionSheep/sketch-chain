@@ -91,7 +91,6 @@ var Game = function(playerList) {
     for(var pl in game.players) {
       game.players[pl].ready = false;
       Player.updateTeamList("red", game.players[pl]);
-      Player.updateTeamList("noDraw", game.players[pl]);
       var tempSocket = SOCKET_LIST[pl];
       if(tempSocket != null) {
         tempSocket.emit("gamePhase",phaseName);
@@ -103,6 +102,7 @@ var Game = function(playerList) {
           }
         }
         else if(phaseName == "guess") {
+          Player.updateTeamList("noDraw", game.players[pl]);
           tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
           if(size(game.players) >= 10) {
             tempSocket.emit("teamListActive", true);
@@ -419,6 +419,9 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
           }
         }
       }
+    }
+    else {
+      socket.emit("errorSound");
     }
   });
 
