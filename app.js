@@ -767,10 +767,9 @@ function switchTimer() {
 
 function shufflePlayer() {
   var playerArray = Object.entries(Player.list);
-  console.log(playerArray);
   playerArray = shuffle(playerArray);
-  console.log(playerArray);
   Player.list = Object.fromEntries(playerArray);
+  console.log(Player.list);
 }
 
 function shuffle(a) {
