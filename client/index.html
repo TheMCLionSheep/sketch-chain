@@ -461,7 +461,7 @@
       function newPlayer() {
         rejoinScrim.classList.remove("active");
         rejoinSection.classList.remove("active");
-        socket.emit("deleteAccount",localStorage.getItem("playerID"));
+        //socket.emit("deleteAccount",localStorage.getItem("playerID"));
         socket.emit("login",null);
       }
 
