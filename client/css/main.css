@@ -91,6 +91,11 @@ button:hover {
   background: -webkit-linear-gradient(165deg, #a8e063, #56ab2f);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(165deg, #a8e063, #56ab2f); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
+.list p.draw{
+  background: #FFB75E;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(345deg, #ED8F03, #FFB75E);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(345deg, #ED8F03, #FFB75E); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
 .list p.host{
   box-shadow: 0 0 20px 5px gold;
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="HandheldFriendly" content="true">
-    <title>Game</title>
+    <title>SketchChain</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 
@@ -13,12 +13,12 @@
   </head>
   <body>
     <button id="mute-button" class="active" onclick="muteMusic()"></button>
-    <div id="scrim" class="scrim" onclick="hidePopup()"></div>
+    <div id="scrim" class="scrim" onclick="hidePopup(true)"></div>
     <div id="rejoin-scrim" class="scrim"></div>
     <article id="content">
       <div id="confirm-popup" class="popup">
         <h1>Confirm Submit</h1>
-        <p>*This will submit for the whole team</p>
+        <p>*Are you ready to submit?</p>
         <button id="confirm-button" onclick="confirmSubmit()">Confirm</button>
       </div>
 
@@ -33,9 +33,9 @@
         <p>Old player detected...</p>
         <button onclick="rejoinGame()">Rejoin</button>
         <button onclick="newPlayer()">New Player</button>
-        <button onclick="rejoinScrim.classList.remove('active');
+        <!-- <button onclick="rejoinScrim.classList.remove('active');
         rejoinSection.classList.remove('active');
-        socket.emit('login',null);">Dev</button>
+        socket.emit('login',null);">Dev</button> -->
       </div>
 
       <section id="sign-in" class="active">
@@ -87,7 +87,7 @@
           <textarea rows="4" placeholder="Write here" value="" id="prompt-area"></textarea>
           <p class="error-text" id="error-prompt"></p>
         </div>
-        <button id="prompt-button" onclick="showPopup('phrase');">Submit Phrase</button>
+        <button id="prompt-button" onclick="confirmTeamSubmit('phrase');">Submit Phrase</button>
       </section>
 
       <section id="draw-phase">
@@ -124,7 +124,7 @@
           </button>
         </div>
         <!-- <button onclick="clearCanvas()" id="clear-btn">Clear Canvas</button> -->
-        <button id="draw-button" onclick="showPopup('drawing');">Submit Drawing</button>
+        <button id="draw-button" onclick="confirmTeamSubmit('drawing');">Submit Drawing</button>
       </section>
 
       <section id="guess-phase">
@@ -136,7 +136,7 @@
         <div class="container canvas-container">
           <canvas id="guess-canvas" width="500" height="500"></canvas>
         </div>
-        <button id="guess-button" onclick="showPopup('guess');">Submit Guess</button>
+        <button id="guess-button" onclick="confirmTeamSubmit('guess');">Submit Guess</button>
       </section>
 
       <section id="review-phase"></section>
@@ -382,6 +382,7 @@
             curButton = promptBtn;
             break;
           case "waiting":
+            hidePopup();
             lobbyMusic.play();
             gameMusic.pause();
             waitSection.classList.add("active");
@@ -401,13 +402,19 @@
             guessArea.value = "";
             guessSection.classList.add("active");
             curButton = guessBtn;
+            break;
           case "review":
             lobbyMusic.pause();
             gameMusic.play();
             reviewSection.classList.add("active");
+            break;
           default:
             break;
         }
+      });
+
+      socket.on("showPopup", function(type){
+        showPopup(type);
       });
 
       socket.on("showPrompt",function(prompt){
@@ -459,6 +466,7 @@
       }
 
       function addTeamName(type, name) {
+        console.log(type);
         if(type == "add") {
           p = document.createElement("p");
 
@@ -471,10 +479,27 @@
         else {
           p = document.querySelector("#team-list__" + name);
           if (type == "red"){
-            p.setAttribute("class","red");
+            p.classList.add("red");
+            p.classList.remove("green");
+            if(p.classList.contains("draw")) {
+              p.classList.remove("draw");
+              p.classList.add("draw");
+            }
           }
-          else if (type == "green"){
-            p.setAttribute("class","green");
+          else if (type == "green") {
+            p.classList.remove("red");
+            p.classList.add("green");
+            if(p.classList.contains("draw")) {
+              p.classList.remove("draw");
+              p.classList.add("draw");
+            }
+          }
+          else if (type == "draw"){
+            p.classList.remove("draw");
+            p.classList.add("draw");
+          }
+          else if (type == "noDraw"){
+            p.classList.remove("draw");
           }
         }
       }
@@ -624,6 +649,13 @@
       }
 
       function drawLine(can, startX, startY, endX, endY, radius, color) {
+        if(radius == 1000) {
+          can.beginPath();
+          can.rect(0,0,500,500);
+          can.fillStyle = color;
+          can.fill();
+          return;
+        }
         can.lineWidth = radius;
         can.lineCap = "round";
         can.strokeStyle = color;
@@ -724,15 +756,22 @@
         socket.emit("textChange",this.value);
       }
 
+      function confirmTeamSubmit(type) {
+        socket.emit("confirmTeamSubmit", type)
+      }
+
       function showPopup(type) {
         alertSound.play();
         scrim.classList.add("active");
         popup.classList.add("active");
         popup.setAttribute("onclick","confirmSubmit('" + type + "');");
       }
-      function hidePopup() {
+      function hidePopup(cancel = false) {
         scrim.classList.remove("active");
         popup.classList.remove("active");
+        if(cancel) {
+          socket.emit("cancelConfirm");
+        }
       }
 
       function confirmSubmit(type) {

@@ -89,6 +89,9 @@ var Game = function(playerList) {
 
     //Set new phase for players
     for(var pl in game.players) {
+      game.players[pl].ready = false;
+      Player.updateTeamList("red", game.players[pl]);
+      Player.updateTeamList("noDraw", game.players[pl]);
       var tempSocket = SOCKET_LIST[pl];
       if(tempSocket != null) {
         tempSocket.emit("gamePhase",phaseName);
@@ -99,13 +102,13 @@ var Game = function(playerList) {
             tempSocket.emit("startTimer", 15);
           }
         }
-        if(phaseName == "guess") {
+        else if(phaseName == "guess") {
           tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
           if(size(game.players) >= 10 || true) {
             tempSocket.emit("teamListActive", true);
           }
         }
-        if(phaseName == "review") {
+        else if(phaseName == "review") {
           tempSocket.emit("showResult",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks,(game.host == pl));
         }
       }
@@ -247,7 +250,8 @@ var Player = function(id, name, color) {
     teamID: 0,
     name: name,
     online: true,
-    lobbyColor: color
+    lobbyColor: color,
+    ready: false
   }
   self.updatePosition = function(x, y) {
     self.lastX = x;
@@ -343,6 +347,17 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     }
   })
 
+  socket.on("confirmTeamSubmit", function(type) {
+    if(curGame.gamePhase != "notStarted") {
+      for(tm in curGame.teams[player.teamID].players) {
+        var tempSocket = SOCKET_LIST[tm];
+        if(tempSocket != null) {
+          tempSocket.emit("showPopup",type);
+        }
+      }
+    }
+  })
+
   socket.on("forceSubmit", function() {
     if(player.id == curGame.host && curGame.gamePhase != "notStarted") {
       console.log("Host forced submittions");
@@ -422,9 +437,29 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     }
   });
 
+  socket.on("cancelConfirm", function() {
+    console.log(player.name + " cancelled submittion");
+    //Cancel ready for everyone.
+    for(var tm in curGame.teams[player.teamID].players) {
+      curGame.players[tm].ready = false;
+      Player.updateTeamList("red", curGame.players[tm]);
+    }
+  })
+
   socket.on("promptSubmit", function() {
     console.log("Prompt Request from " + player.name);
     if(curGame.gamePhase == "prompt" || curGame.gamePhase == "guess") {
+      player.ready = true;
+      Player.updateTeamList("green", player);
+
+      //Check if everyone ready
+      for(var tm in curGame.teams[player.teamID].players) {
+        if(curGame.players[tm].ready || (!curGame.players[tm].online)) {
+          continue;
+        }
+        return;
+      }
+
       //Set waiting for team
       for(var i in curGame.teams[player.teamID].players) {
         var tempSocket = SOCKET_LIST[i];
@@ -442,6 +477,17 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
   socket.on("drawingSubmit", function() {
     console.log("Drawing Request from " + player.name);
     if(curGame.gamePhase == "draw") {
+      player.ready = true;
+      Player.updateTeamList("green", player);
+
+      //Check if everyone ready
+      for(var tm in curGame.teams[player.teamID].players) {
+        if(curGame.players[tm].ready || (!curGame.players[tm].online)) {
+          continue;
+        }
+        return;
+      }
+
       //Set waiting for team
       for(var i in curGame.teams[player.teamID].players) {
         var tempSocket = SOCKET_LIST[i];
@@ -540,10 +586,10 @@ Player.updateLobby = function(type, player) {
   }
 }
 Player.updateTeamList = function(type, player) {
-  for(var tm in curGame.teams[curGame.players[player].teamID].players) {
+  for(var tm in curGame.teams[player.teamID].players) {
     var tempSocket = SOCKET_LIST[tm];
     if(tempSocket != null) {
-      tempSocket.emit("addTeamMember", type, curGame.players[player].name);
+      tempSocket.emit("addTeamMember", type, player.name);
     }
   }
 }
@@ -695,18 +741,18 @@ function switchTimer() {
         if(drawerPassed) {
           curGame.teams[i].drawer = pl;
           drawerAssign = true;
-          Player.updateTeamList("green", pl);
+          Player.updateTeamList("draw", curGame.players[pl]);
           break;
         }
         if(pl == curGame.teams[i].drawer) {
           drawerPassed = true;
-          Player.updateTeamList("red", pl);
+          Player.updateTeamList("noDraw", curGame.players[pl]);
         }
       }
       if(!drawerAssign) {
         for(var pl in curGame.teams[i].players) {
           curGame.teams[i].drawer = pl;
-          Player.updateTeamList("green", pl);
+          Player.updateTeamList("draw", curGame.players[pl]);
           break;
         }
       }
