@@ -49,7 +49,7 @@ var Game = function(playerList) {
       Team.fillTeams(this);
       Chain.createChains(this);
 
-      if(size(game.players) >= 10 || true) {
+      if(size(game.players) >= 10) {
         for(pl in game.players) {
           var tempSocket = SOCKET_LIST[pl];
           if(tempSocket != null) {
@@ -68,7 +68,7 @@ var Game = function(playerList) {
       for(var i = 0; i < game.chains.length; i++) {
         game.chains[i].addToChain(new Drawing());
       }
-      if(size(game.players) >= 10 || true) {
+      if(size(game.players) >= 10) {
         switchTimer();
       }
     }
@@ -97,14 +97,14 @@ var Game = function(playerList) {
         tempSocket.emit("gamePhase",phaseName);
         if(phaseName == "draw") {
           tempSocket.emit("showPrompt",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1]);
-          if(size(game.players) >= 10 || true) {
+          if(size(game.players) >= 10) {
             tempSocket.emit("teamListActive", true);
             tempSocket.emit("startTimer", 15);
           }
         }
         else if(phaseName == "guess") {
           tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
-          if(size(game.players) >= 10 || true) {
+          if(size(game.players) >= 10) {
             tempSocket.emit("teamListActive", true);
           }
         }
@@ -211,11 +211,11 @@ var Team = function(id) {
 }
 Team.fillTeams = function(game) {
   var teamAmount;
-  if(size(game.players) <= 5) {
+  if(size(game.players) <= 9) {
     teamAmount = size(game.players);
   }
   else if(size(game.players) <= 15) {
-    teamAmount = 3;
+    teamAmount = 5;
   }
   else if(size(game.players) <= 21) {
     teamAmount = 7;
@@ -276,7 +276,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     player.online = true;
     Player.loadLobby(socket, true);
     socket.emit("displayHost","host");
-    if(size(curGame.players) >= 10 || true) {
+    if(size(curGame.players) >= 10) {
       for(tm in curGame.teams[player.teamID].players) {
         socket.emit("addTeamMember", "add", curGame.players[tm].name);
       }
@@ -292,7 +292,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       if(curGame.gamePhase == "prompt") {
         socket.emit("gamePhase", "prompt");
         socket.emit("changeText", curLink.text, true);
-        if(size(curGame.players) >= 10 || true) {
+        if(size(curGame.players) >= 10) {
           socket.emit("teamListActive", true);
         }
       }
@@ -300,7 +300,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         socket.emit("gamePhase", "draw");
         socket.emit("showDrawing", curLink, "main");
         socket.emit("showPrompt",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1]);
-        if(size(curGame.players) >= 10 || true) {
+        if(size(curGame.players) >= 10) {
           socket.emit("teamListActive", true);
         }
       }
@@ -308,7 +308,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         socket.emit("gamePhase", "guess");
         socket.emit("changeText",curLink.text, false);
         socket.emit("showDrawing",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1], "guess");
-        if(size(curGame.players) >= 10 || true) {
+        if(size(curGame.players) >= 10) {
           socket.emit("teamListActive", true);
         }
       }
