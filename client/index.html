@@ -278,8 +278,13 @@
         }
         else {
           timer.classList.add("active");
-          secLeft = seconds + 1;
-          updateTime();
+          if(secLeft < 1) {
+            secLeft = seconds + 1;
+            updateTime();
+          }
+          else {
+            secLeft = seconds + 1;
+          }
         }
       });
 
