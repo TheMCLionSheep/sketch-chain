@@ -46,6 +46,7 @@ var Game = function(playerList) {
         }
         Player.updateLobby("red",game.players[i]);
       }
+      shufflePlayer();
       Team.fillTeams(this);
       Chain.createChains(this);
 
