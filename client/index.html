@@ -481,8 +481,9 @@
 
       function clearTeamMembers() {
         var teamMembers = teamList.getElementsByTagName("p");
-        for(var i = 0; i < teamMembers.length; i++) {
-          teamList.removeChild(teamMembers[i]);
+        console.log(teamMembers);
+        while(teamMembers.length > 0){
+          teamList.removeChild(teamMembers[0]);
         }
       }
 
