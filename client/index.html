@@ -469,7 +469,7 @@
       }
 
       function addTeamName(type, name) {
-        console.log(type);
+        //console.log(type);
         if(type == "add") {
           p = document.createElement("p");
 
@@ -509,7 +509,7 @@
 
       function clearTeamMembers() {
         var teamMembers = teamList.getElementsByTagName("p");
-        console.log(teamMembers);
+        //console.log(teamMembers);
         while(teamMembers.length > 0){
           teamList.removeChild(teamMembers[0]);
         }
@@ -607,7 +607,7 @@
       }
       function startDrawingTouch(e) {
         e.preventDefault();
-        console.log(e.changedTouches[0]);
+        //console.log(e.changedTouches[0]);
         var canvasPercent = 500/this.offsetWidth;
         canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
 
@@ -630,7 +630,7 @@
       }
       function drawTouch(e) {
         e.preventDefault();
-        console.log(e.changedTouches[0]);
+        //console.log(e.changedTouches[0]);
         var canvasPercent = 500/this.offsetWidth;
         canvasPercent = canvasPercent < 1 ? 1 : canvasPercent;
 
