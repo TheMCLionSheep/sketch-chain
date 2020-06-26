@@ -238,8 +238,7 @@
         errorSound.play();
       })
 
-      socket.on("joinGame", function(host, id, started, consoleList) {
-        console.log(consoleList);
+      socket.on("joinGame", function(host, id, started) {
         lobbyMusic.play();
         lobbyMusic.addEventListener("ended", function() {
           lobbyMusic.play();

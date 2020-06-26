@@ -269,7 +269,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     var player = Player(socket.id, name, HSLToRGB(Math.floor(Math.random()*360) ,100, Math.floor(Math.random()*60)+20));
   }
 
-  socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"), Player.list);
+  socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"));
   socket.emit("showDrawing", lobbyDrawing, "lobby");
 
   if(returningPlayer) {
@@ -763,6 +763,26 @@ function switchTimer() {
     setTimeout(switchTimer, 15000);
   }
 }
+
+function shufflePlayer() {
+  var playerArray = Object.entries(Player.list);
+  console.log(playerArray);
+  playerArray = shuffle(playerArray);
+  console.log(playerArray);
+  Player.list = Object.fromEntries(playerArray);
+}
+
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
 // setInterval(function() {
 //
 // },1000);
