@@ -119,7 +119,7 @@
           <button id="size-25" class="size-buttons__spacer" onclick="changeSize(25)">
             <span></span>
           </button>
-          <button class="size-buttons__spacer fill-bucket" onclick="fillCanvas()">
+          <button id="size-1000" class="size-buttons__spacer fill-bucket" onclick="changeSize(1000)">
             <img src="/client/images/fill.png" alt="Fill">
           </button>
         </div>
@@ -680,16 +680,6 @@
         size = newSize;
         var newSizeBtn = document.querySelector("#size-" + size);
         newSizeBtn.style.borderColor = color;
-      }
-
-      function fillCanvas() {
-        eventInfo = {
-          x: 0,
-          y: 0,
-          color: color,
-          size: 1000
-        };
-        socket.emit("linePress", eventInfo, false);
       }
 
       function HSLToRGB(h,s,l) {

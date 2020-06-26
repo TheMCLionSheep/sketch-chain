@@ -97,7 +97,6 @@ var Game = function(playerList) {
           if(size(game.players) >= 10 || true) {
             tempSocket.emit("teamListActive", true);
             tempSocket.emit("startTimer", 15);
-            game.teams[game.players[pl].teamID].drawer = pl;
           }
         }
         if(phaseName == "guess") {
@@ -376,14 +375,10 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         player.painting = false;
       }
 
-      if(player.painting || event.size == 1000) {
+      if(player.painting) {
         if(lobby) {
           var line = new Line(player.lastX, player.lastY, event.x, event.y, 10, player.lobbyColor, lobbyDrawing.lineList);
           player.updatePosition(event.x,event.y);
-        }
-        else if(event.size == 1000) {
-          var chainID = curGame.teams[player.teamID].curChain;
-          var line = new Line(250, 250, 250, 250, 1000, event.color, curGame.chains[chainID].chainLinks[curGame.roundNumber].lineList);
         }
         else {
           var chainID = curGame.teams[player.teamID].curChain;
@@ -544,6 +539,14 @@ Player.updateLobby = function(type, player) {
     }
   }
 }
+Player.updateTeamList = function(type, player) {
+  for(var tm in curGame.teams[curGame[player].teamID].players) {
+    var tempSocket = SOCKET_LIST[tm];
+    if(tempSocket != null) {
+      tempSocket.emit("addTeamMember", type, curGame[player].name);
+    }
+  }
+}
 Player.onDisconnect = function(id) {
   if(Player.list[id] != null) {
     console.log(Player.list[id].name + " left the game.");
@@ -679,39 +682,31 @@ function HSLToRGB(h,s,l) {
 var lobbyDrawing = new Drawing();
 
 function switchTimer() {
-  console.log("switch");
   if(curGame.gamePhase == "draw") {
     //For each team assign new drawer
     for(var i = 0; i < curGame.teams.length; i++) {
-      console.log("team");
       var drawerPassed = false;
       var drawerAssign = false;
       for(var pl in curGame.teams[i].players) {
-        console.log(pl);
+        var tempSocket = SOCKET_LIST[pl];
+        if(tempSocket != null) {
+          tempSocket.emit("startTimer", 15);
+        }
         if(drawerPassed) {
           curGame.teams[i].drawer = pl;
           drawerAssign = true;
-          for(var tm in curGame.teams[i].players) {
-            var tempSocket = SOCKET_LIST[tm];
-            if(tempSocket != null) {
-              tempSocket.emit("addTeamMember", "green", curGame.players[tm].name);
-            }
-          }
+          Player.updateTeamList("green", pl);
           break;
         }
         if(pl == curGame.teams[i].drawer) {
           drawerPassed = true;
-          for(var tm in curGame.teams[i].players) {
-            var tempSocket = SOCKET_LIST[tm];
-            if(tempSocket != null) {
-              tempSocket.emit("addTeamMember", "red", curGame.players[tm].name);
-            }
-          }
+          Player.updateTeamList("red", pl);
         }
       }
       if(!drawerAssign) {
         for(var pl in curGame.teams[i].players) {
           curGame.teams[i].drawer = pl;
+          Player.updateTeamList("green", pl);
           break;
         }
       }
