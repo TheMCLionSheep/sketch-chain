@@ -37,6 +37,7 @@ var Game = function(playerList) {
     if(game.gamePhase == "notStarted") {
       console.log("Game has started!");
       game.gamePhase = "prompt";
+      shufflePlayer();
       for(var i in Player.list) {
         game.addPlayer(Player.list[i]);
         var tempSocket = SOCKET_LIST[i];
@@ -46,7 +47,7 @@ var Game = function(playerList) {
         }
         Player.updateLobby("red",game.players[i]);
       }
-      shufflePlayer();
+
       Team.fillTeams(this);
       Chain.createChains(this);
 
@@ -769,7 +770,6 @@ function shufflePlayer() {
   var playerArray = Object.entries(Player.list);
   playerArray = shuffle(playerArray);
   Player.list = Object.fromEntries(playerArray);
-  console.log(Player.list);
 }
 
 function shuffle(a) {
