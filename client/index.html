@@ -194,7 +194,7 @@
       chime.volume = 0.2;
       var drawChime = new Audio();
       drawChime.src = "/client/audio/draw.mp3";
-      drawChime.volume = 0.3;
+      drawChime.volume = 0.2;
       var errorSound = new Audio();
       errorSound.src = "/client/audio/error.ogg";
       errorSound.volume = 0.3;
@@ -238,7 +238,8 @@
         errorSound.play();
       })
 
-      socket.on("joinGame", function(host, id, started) {
+      socket.on("joinGame", function(host, id, started, consoleList) {
+        console.log(consoleList);
         lobbyMusic.play();
         lobbyMusic.addEventListener("ended", function() {
           lobbyMusic.play();

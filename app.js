@@ -269,7 +269,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     var player = Player(socket.id, name, HSLToRGB(Math.floor(Math.random()*360) ,100, Math.floor(Math.random()*60)+20));
   }
 
-  socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"));
+  socket.emit("joinGame",(curGame.host != -1),socket.id,(curGame.gamePhase != "notStarted"), Player.list);
   socket.emit("showDrawing", lobbyDrawing, "lobby");
 
   if(returningPlayer) {
