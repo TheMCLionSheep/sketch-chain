@@ -540,10 +540,10 @@ Player.updateLobby = function(type, player) {
   }
 }
 Player.updateTeamList = function(type, player) {
-  for(var tm in curGame.teams[curGame[player].teamID].players) {
+  for(var tm in curGame.teams[curGame.players[player].teamID].players) {
     var tempSocket = SOCKET_LIST[tm];
     if(tempSocket != null) {
-      tempSocket.emit("addTeamMember", type, curGame[player].name);
+      tempSocket.emit("addTeamMember", type, curGame.players[player].name);
     }
   }
 }
