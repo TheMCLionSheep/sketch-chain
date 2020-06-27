@@ -28,7 +28,11 @@ var Game = function(playerList) {
     chains: [],
     teams: [],
     host: -1,
-    timeLeft: 0
+    timeLeft: 0,
+    review: {
+      chainID: 0,
+      linkID: 0
+    }
   }
   game.addPlayer = function(player) {
     game.players[player.id] = player;
@@ -111,7 +115,7 @@ var Game = function(playerList) {
           }
         }
         else if(phaseName == "review") {
-          tempSocket.emit("showResult",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks,(game.host == pl));
+          tempSocket.emit("showResult",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks);
         }
       }
       Player.updateLobby("red",game.players[pl]);
@@ -277,7 +281,6 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
   if(returningPlayer) {
     player.online = true;
     Player.loadLobby(socket, true);
-    socket.emit("displayHost","host");
     if(size(curGame.players) >= 10) {
       for(tm in curGame.teams[player.teamID].players) {
         socket.emit("addTeamMember", "add", curGame.players[tm].name);
@@ -316,6 +319,26 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       }
       else if(curGame.gamePhase == "review") {
         socket.emit("gamePhase", "review");
+        if(curGame.review.linkID == 0 && !(curGame.review.chainID == 0)) {
+          for(var i = 0; i < curGame.chains[curGame.review.chainID].chainLinks.length; i++) {
+            var packet = {
+              link: curGame.chains[curGame.review.chainID-1].chainLinks[i],
+              type: (i % 2 == 0 ? "text" : "drawing"),
+              clear: (i == 0)
+            };
+            socket.emit("reviewLink",packet);
+          }
+        }
+        else {
+          for(var i = 0; i < curGame.review.linkID; i++) {
+            var packet = {
+              link: curGame.chains[curGame.review.chainID].chainLinks[i],
+              type: (i % 2 == 0 ? "text" : "drawing"),
+              clear: (i == 0)
+            };
+            socket.emit("reviewLink",packet);
+          }
+        }
       }
     }
   }
@@ -508,27 +531,26 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
     }
   });
 
-  socket.on("viewChains", function(link) {
+  socket.on("viewChains", function() {
     if(curGame.gamePhase == "review") {
-      if(link.chainID >= curGame.chains.length) {
+      if(curGame.review.chainID >= curGame.chains.length) {
         curGame.endGame();
       }
       else {
+        var packet = {
+          link: curGame.chains[curGame.review.chainID].chainLinks[curGame.review.linkID],
+          type: (curGame.review.linkID % 2 == 0 ? "text" : "drawing"),
+          clear: (curGame.review.linkID == 0)
+        };
+        curGame.review.linkID++;
+        if(curGame.review.linkID >= curGame.chains[curGame.review.chainID].chainLinks.length) {
+          curGame.review.chainID++;
+          curGame.review.linkID = 0;
+        }
         for(var i in curGame.players) {
-          var packet = {
-            link: curGame.chains[link.chainID].chainLinks[link.linkID],
-            type: (link.linkID % 2 == 0 ? "text" : "drawing"),
-            nextChain: link.chainID,
-            nextLink: link.linkID
-          };
-          packet.nextLink++;
-          if(packet.nextLink >= curGame.chains[link.chainID].chainLinks.length) {
-            packet.nextChain++;
-            packet.nextLink = 0;
-          }
           var tempSocket = SOCKET_LIST[i];
           if(tempSocket != null) {
-            tempSocket.emit("reviewLink",packet,(curGame.host == i));
+            tempSocket.emit("reviewLink",packet);
           }
         }
       }
@@ -591,10 +613,12 @@ Player.updateLobby = function(type, player) {
   }
 }
 Player.updateTeamList = function(type, player) {
-  for(var tm in curGame.teams[player.teamID].players) {
-    var tempSocket = SOCKET_LIST[tm];
-    if(tempSocket != null) {
-      tempSocket.emit("addTeamMember", type, player.name);
+  if(size(curGame.players) >= 10) {
+    for(var tm in curGame.teams[player.teamID].players) {
+      var tempSocket = SOCKET_LIST[tm];
+      if(tempSocket != null) {
+        tempSocket.emit("addTeamMember", type, player.name);
+      }
     }
   }
 }
@@ -615,6 +639,21 @@ Player.onDisconnect = function(id) {
       }
     }
     else {
+      if(curGame.host == id) {
+        for(var pl in curGame.players) {
+          if(curGame.players[pl].online && (pl != id)) {
+            curGame.host = pl;
+            var tempSocket = SOCKET_LIST[pl];
+            if(tempSocket != null) {
+              tempSocket.emit("displayHost","none");
+              tempSocket.emit("displayHost","host");
+            }
+            Player.updateLobby("host",curGame.players[pl]);
+            break;
+          }
+        }
+      }
+      Player.updateLobby("stopHost", Player.list[id]);
       Player.updateLobby("gray", Player.list[id]);
       curGame.players[id].online = false;
     }

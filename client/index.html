@@ -142,7 +142,10 @@
         <button id="guess-button" onclick="confirmTeamSubmit('guess');">Submit Guess</button>
       </section>
 
-      <section id="review-phase"></section>
+      <section id="review-phase">
+        <div id="review-display"></div>
+        <button id="review-button" class="toggle-btn" onclick="viewChains()">Next Link</button>
+      </section>
     </article>
     <script>
       var muteButton = document.querySelector("#mute-button");
@@ -180,6 +183,8 @@
       var guessArea = document.querySelector("#guess-area");
       var guessBtn = document.querySelector("#guess-button");
       var reviewSection = document.querySelector("#review-phase");
+      var reviewDisplay = document.querySelector("#review-display");
+      var reviewButton = document.querySelector("#review-button");
       var popup = document.querySelector("#confirm-popup");
       var popupBtn = document.querySelector("#confirm-button");
       var scrim = document.querySelector("#scrim");
@@ -315,11 +320,13 @@
             quitHostBtn.classList.remove("active");
             startBtn.classList.remove("active");
             forceBtn.classList.remove("active");
+            reviewButton.classList.remove("active");
             break;
           case "host":
             quitHostBtn.classList.add("active");
             startBtn.classList.add("active");
             forceBtn.classList.add("active");
+            reviewButton.classList.add("active");
             break;
           case "normal":
             hostBtn.classList.add("active");
@@ -355,10 +362,6 @@
           drawLines(guessCtx, drawing);
         }
       });
-
-      // socket.on("requestDrawing", function(){
-      //   socket.emit("drawingSubmit", canvas.toDataURL());
-      // })
 
       socket.on("changeText", function(text, isPrompt) {
         if(isPrompt) {
@@ -431,30 +434,23 @@
         drawPrompt.innerHTML = "Draw: " + prompt.text;
       });
 
-      socket.on("showResult", function(chainLinks, isHost){
+      socket.on("showResult", function(chainLinks){
         clearReview();
-        createText(reviewSection,"Original Prompt",chainLinks[0].text);
+        createText(reviewDisplay,"Original Prompt",chainLinks[0].text);
         if(chainLinks.length % 2 == 1) {
-          createText(reviewSection,"Final Guess",chainLinks[chainLinks.length - 1].text);
-        }
-        if(isHost) {
-          createButton("View Chains","viewChains(0,0);");
+          createText(reviewDisplay,"Final Guess",chainLinks[chainLinks.length - 1].text);
         }
       });
 
-      socket.on("reviewLink", function(packet, isHost){
-        if(packet.nextLink == 1) {
+      socket.on("reviewLink", function(packet){
+        if(packet.clear) {
           clearReview();
-          createArrowButtons(packet.nextChain, packet.nextLink, isHost);
         }
         if(packet.type == "text") {
-          createText(document.querySelector("#chain-showcase"),(packet.nextLink == 1 ? "Original Prompt" : "Guess"),packet.link.text);
+          createText(reviewDisplay,(packet.clear ? "Original Prompt" : "Guess"),packet.link.text);
         }
         else if(packet.type == "drawing") {
           createDrawing(packet.link);
-        }
-        if(isHost) {
-          updateArrowButtons(packet.nextChain, packet.nextLink);
         }
       });
 
@@ -843,22 +839,9 @@
         parent.appendChild(container);
       }
 
-      function createButton(text, onclick, id=null) {
-        var button = document.createElement("button");
-
-        button.innerHTML = text;
-        button.setAttribute("onclick",onclick);
-        if(id != null) {
-          button.setAttribute("id","next-button");
-        }
-
-        reviewSection.appendChild(button);
-      }
-
       function createDrawing(drawing) {
         var canvasContainer = document.createElement("div");
         var newCanvas = document.createElement("canvas");
-        var chainSection = document.querySelector("#chain-showcase");
 
         canvasContainer.setAttribute("class","container canvas-container");
         newCanvas.setAttribute("width",500);
@@ -866,36 +849,17 @@
         drawLines(newCanvas.getContext("2d"), drawing);
 
         canvasContainer.appendChild(newCanvas);
-        chainSection.appendChild(canvasContainer);
+        reviewDisplay.appendChild(canvasContainer);
       }
 
-      function viewChains(chainID, linkID) {
-        linkNumber = {
-          chainID: chainID,
-          linkID: linkID
-        };
-        socket.emit("viewChains", linkNumber);
+      function viewChains() {
+        socket.emit("viewChains");
       }
 
       function clearReview() {
-        while(reviewSection.firstChild) {
-          reviewSection.removeChild(reviewSection.lastChild);
+        while(reviewDisplay.firstChild) {
+          reviewDisplay.removeChild(reviewDisplay.lastChild);
         }
-      }
-
-      function createArrowButtons(chainID, linkID, makeButton) {
-        var div = document.createElement("div");
-        div.setAttribute("id","chain-showcase");
-        reviewSection.appendChild(div);
-
-        if(makeButton) {
-          createButton("Next", "viewChains("+chainID+","+linkID+")", "next-button");
-        }
-      }
-
-      function updateArrowButtons(chainID, linkID) {
-        var button = document.querySelector("#next-button");
-        button.setAttribute("onclick","viewChains("+chainID+","+linkID+")");
       }
 
       document.addEventListener("keyup", function(event){
