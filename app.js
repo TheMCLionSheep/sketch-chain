@@ -1,6 +1,7 @@
 //node app.js
 
 //heroku login
+//heroku git:remote -a intense-basin-46163
 //git add .
 //git commit -am "Make it better"
 //git push heroku master
