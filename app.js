@@ -219,7 +219,12 @@ var Team = function(id) {
 Team.fillTeams = function(game) {
   var teamAmount;
   if(size(game.players) <= 9) {
-    teamAmount = size(game.players);
+    if(size(game.players)%2 == 1) {
+      teamAmount = size(game.players);
+    }
+    else{
+      teamAmount = size(game.players) - 1;
+    }
   }
   else if(size(game.players) <= 15) {
     teamAmount = 5;
