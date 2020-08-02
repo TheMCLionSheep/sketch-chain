@@ -644,7 +644,7 @@ Player.onDisconnect = function(id) {
         }
       }
     }
-    else if(curGame.playerList[id] != null) {
+    else {
       if(curGame.host == id) {
         for(var pl in curGame.players) {
           if(curGame.players[pl].online && (pl != id)) {
