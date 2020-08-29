@@ -631,7 +631,7 @@ Player.updateTeamList = function(type, player) {
 Player.onDisconnect = function(id) {
   if(Player.list[id] != null) {
     console.log(Player.list[id].name + " left the game.");
-    if(curGame.gamePhase == "notStarted") {
+    if(curGame.gamePhase == "notStarted" || curGame.players[id] == null) {
       Player.updateLobby("remove", Player.list[id]);
       delete Player.list[id];
       if(curGame.host == id) {
