@@ -21,7 +21,7 @@ console.log("Server Started.");
 
 var SOCKET_LIST = {};
 
-var MAX_TEAMS = 9;
+var MAX_TEAMS = 7;
 var SWITCH_TIMER = false;
 
 var Game = function(playerList) {
@@ -78,7 +78,6 @@ var Game = function(playerList) {
       for(var i = 0; i < game.chains.length; i++) {
         game.chains[i].addToChain(new Drawing());
       }
-      //COMEBACK
       if((size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) && SWITCH_TIMER) {
         switchTimer();
       }
@@ -109,7 +108,9 @@ var Game = function(playerList) {
           tempSocket.emit("showPrompt",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1]);
           if(size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) {
             tempSocket.emit("teamListActive", true);
-            tempSocket.emit("startTimer", 15);
+            if(SWITCH_TIMER) {
+              tempSocket.emit("startTimer", 15);
+            }
           }
         }
         else if(phaseName == "guess") {
