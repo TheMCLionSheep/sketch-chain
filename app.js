@@ -21,6 +21,9 @@ console.log("Server Started.");
 
 var SOCKET_LIST = {};
 
+var MAX_TEAMS = 9;
+var SWITCH_TIMER = false;
+
 var Game = function(playerList) {
   var game = {
     players: playerList,
@@ -56,7 +59,7 @@ var Game = function(playerList) {
       Team.fillTeams(this);
       Chain.createChains(this);
 
-      if(size(game.players) >= 10) {
+      if(size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) {
         for(pl in game.players) {
           var tempSocket = SOCKET_LIST[pl];
           if(tempSocket != null) {
@@ -75,7 +78,8 @@ var Game = function(playerList) {
       for(var i = 0; i < game.chains.length; i++) {
         game.chains[i].addToChain(new Drawing());
       }
-      if(size(game.players) >= 10) {
+      //COMEBACK
+      if((size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) && SWITCH_TIMER) {
         switchTimer();
       }
     }
@@ -103,7 +107,7 @@ var Game = function(playerList) {
         tempSocket.emit("gamePhase",phaseName);
         if(phaseName == "draw") {
           tempSocket.emit("showPrompt",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1]);
-          if(size(game.players) >= 10) {
+          if(size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) {
             tempSocket.emit("teamListActive", true);
             tempSocket.emit("startTimer", 15);
           }
@@ -111,7 +115,7 @@ var Game = function(playerList) {
         else if(phaseName == "guess") {
           Player.updateTeamList("noDraw", game.players[pl]);
           tempSocket.emit("showDrawing",game.chains[game.teams[game.players[pl].teamID].curChain].chainLinks[game.roundNumber - 1], "guess");
-          if(size(game.players) >= 10) {
+          if(size(game.players) > MAX_TEAMS || size(game.players) % 2 == 0) {
             tempSocket.emit("teamListActive", true);
           }
         }
@@ -218,7 +222,7 @@ var Team = function(id) {
 }
 Team.fillTeams = function(game) {
   var teamAmount;
-  if(size(game.players) <= 9) {
+  if(size(game.players) <= MAX_TEAMS) {
     if(size(game.players)%2 == 1) {
       teamAmount = size(game.players);
     }
@@ -287,7 +291,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
   if(returningPlayer) {
     player.online = true;
     Player.loadLobby(socket, true);
-    if(size(curGame.players) >= 10) {
+    if(size(curGame.players) > MAX_TEAMS || size(curGame.players) % 2 == 0) {
       for(tm in curGame.teams[player.teamID].players) {
         socket.emit("addTeamMember", "add", curGame.players[tm].name);
       }
@@ -303,7 +307,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
       if(curGame.gamePhase == "prompt") {
         socket.emit("gamePhase", "prompt");
         socket.emit("changeText", curLink.text, true);
-        if(size(curGame.players) >= 10) {
+        if(size(curGame.players) > MAX_TEAMS || size(curGame.players) % 2 == 0) {
           socket.emit("teamListActive", true);
         }
       }
@@ -311,7 +315,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         socket.emit("gamePhase", "draw");
         socket.emit("showDrawing", curLink, "main");
         socket.emit("showPrompt",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1]);
-        if(size(curGame.players) >= 10) {
+        if(size(curGame.players) > MAX_TEAMS || size(curGame.players) % 2 == 0) {
           socket.emit("teamListActive", true);
         }
       }
@@ -319,7 +323,7 @@ Player.onConnect = function(socket, name, returningPlayer = false) {
         socket.emit("gamePhase", "guess");
         socket.emit("changeText",curLink.text, false);
         socket.emit("showDrawing",curGame.chains[chainID].chainLinks[curGame.roundNumber - 1], "guess");
-        if(size(curGame.players) >= 10) {
+        if(size(curGame.players) > MAX_TEAMS || size(curGame.players) % 2 == 0) {
           socket.emit("teamListActive", true);
         }
       }
@@ -619,7 +623,7 @@ Player.updateLobby = function(type, player) {
   }
 }
 Player.updateTeamList = function(type, player) {
-  if(size(curGame.players) >= 10) {
+  if(size(curGame.players) > MAX_TEAMS || size(curGame.players) % 2 == 0) {
     for(var tm in curGame.teams[player.teamID].players) {
       var tempSocket = SOCKET_LIST[tm];
       if(tempSocket != null) {
