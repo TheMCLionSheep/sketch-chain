@@ -21,7 +21,7 @@ console.log("Server Started.");
 
 var SOCKET_LIST = {};
 
-var MAX_TEAMS = 7;
+var MAX_TEAMS = 9;
 var SWITCH_TIMER = false;
 
 var Game = function(playerList) {
